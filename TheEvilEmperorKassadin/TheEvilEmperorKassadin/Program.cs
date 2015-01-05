@@ -79,7 +79,7 @@ namespace TheEvilEmperorKassadin
             if (!W.IsReady() && Config.Item("ChargeW").GetValue<Slider>().Value < GetEstacks) return;
             var target = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Magical);
             var minions = MinionManager.GetMinions(W.Range, MinionTypes.All, MinionTeam.Enemy, MinionOrderTypes.Health);
-            if (target != null) W.Cast(PacketCast);
+            if (target != null && GetEstacks < 6 && Config.Item("ChargeW").GetValue<Slider>().Value > GetEstacks) W.Cast(PacketCast);
             if (target == null && minions != null)
             {
                 if(Orbwalking.OrbwalkingMode.None == Orb.ActiveMode)
@@ -274,16 +274,33 @@ namespace TheEvilEmperorKassadin
         }
         public static void PotionManager()
         {
-            if(ObjectManager.Player.InFountain()) return;
-            if(healthPot.IsReady() && !ObjectManager.Player.HasBuff("RegenerationPotion",true))
+            // FlaskOfCrystalWater - Mana Potion
+            // RegenerationPotion - Health Potion
+            // ItemCrystalFlask - Flask
+            if(ObjectManager.Player.InFountain() || ObjectManager.Player.IsRecalling()) return;
+
+            // Health Potion
+            if (healthPot.IsReady() && !ObjectManager.Player.HasBuff("RegenerationPotion",true) && !ObjectManager.Player.HasBuff("ItemCrystalFlask",true))
             {
-                if (Utility.CountEnemysInRange((int)(R.Range + Q.Range)*2) > 0 && ObjectManager.Player.Health + 150 < ObjectManager.Player.MaxHealth
-                    || ObjectManager.Player.Health < ObjectManager.Player.MaxHealth * 0.5)
+                if (ObjectManager.Player.CountEnemysInRange((R.Range+Q.Range)*2) > 0 &&
+                        ObjectManager.Player.Health + 150 < ObjectManager.Player.MaxHealth 
+                            || ObjectManager.Player.Health < ObjectManager.Player.MaxHealth * 0.5)
+                {
                     healthPot.Cast();
+                }
             }
-            if (manaPot.IsReady() && Utility.CountEnemysInRange((int)(R.Range + Q.Range)*2) > 0 && ObjectManager.Player.Mana < manaCost(SpellSlot.Q) + manaCost(SpellSlot.E) + manaCost(SpellSlot.R))
+
+            // Mana Potion
+            if (!ObjectManager.Player.HasBuff("FlaskOfCrystalWater",true) && !ObjectManager.Player.HasBuff("ItemCrystalFlask",true) && manaPot.IsReady() && ObjectManager.Player.CountEnemysInRange((R.Range + Q.Range) * 2) > 0 && ObjectManager.Player.Mana < manaCost(SpellSlot.Q) + manaCost(SpellSlot.E) + manaCost(SpellSlot.R))
+            {
                 manaPot.Cast();
-            if (crystallineFlask.IsReady() && Utility.CountEnemysInRange((int)(R.Range + Q.Range) * 2) > 0 && (ObjectManager.Player.Mana < manaCost(SpellSlot.W) + manaCost(SpellSlot.E) + manaCost(SpellSlot.R) || ObjectManager.Player.Health + 120 < ObjectManager.Player.MaxHealth))
+            }
+
+            // Crystalline Flask
+            if (!ObjectManager.Player.HasBuff("FlaskOfCrystalWater",true) 
+                    && !ObjectManager.Player.HasBuff("ItemCrystalFlask",true)
+                        && !ObjectManager.Player.HasBuff("RegenerationPotion", true) 
+                            && crystallineFlask.IsReady() && ObjectManager.Player.CountEnemysInRange((R.Range + Q.Range) * 2) > 0 && (ObjectManager.Player.Mana < manaCost(SpellSlot.W) + manaCost(SpellSlot.E) + manaCost(SpellSlot.R) || ObjectManager.Player.Health + 120 < ObjectManager.Player.MaxHealth))
                 crystallineFlask.Cast();
         }
         private static void UseItems()
