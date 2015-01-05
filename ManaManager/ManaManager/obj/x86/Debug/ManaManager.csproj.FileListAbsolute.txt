@@ -1,0 +1,14 @@
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\ManaManager.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\ManaManager.pdb
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\LeagueSharp.Common.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\LeagueSharp.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\SharpDX.Direct3D9.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\SharpDX.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\SharpDX.Toolkit.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\SharpDX.Toolkit.Graphics.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\LeagueSharp.xml
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\SharpDX.Toolkit.xml
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\bin\x86\Debug\SharpDX.Toolkit.Graphics.xml
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\obj\x86\Debug\ManaManager.csprojResolveAssemblyReference.cache
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\obj\x86\Debug\ManaManager.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\ManaManager\ManaManager\obj\x86\Debug\ManaManager.pdb
