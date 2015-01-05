@@ -54,7 +54,7 @@ namespace TheEvilEmperorKassadin
 
         private static void Game_OnGameUpdate(EventArgs args)
         {
-            if (ObjectManager.Player.IsRecalling) return;
+            if (ObjectManager.Player.IsRecalling()) return;
             PotionManager();
             if(Config.SubMenu("otherMenu").Item("Killsteal").GetValue<bool>())
                 OnKillsteal();
