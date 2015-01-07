@@ -27,17 +27,11 @@ namespace IreliaTheWillOfCarrying
         {
             get { return new Vector2(10, 20); }
         }
+        public static System.Drawing.Color Color;
 
-        private static ColorBGRA _colorBgra = new ColorBGRA(0x00, 0xFF, 0xFF, 90);
-        private static System.Drawing.Color _color = System.Drawing.Color.Aqua;
-        public static System.Drawing.Color Color
+        public static ColorBGRA ColorBgra(System.Drawing.Color c)
         {
-            get { return _color; }
-            set
-            {
-                _color = value;
-                _colorBgra = new ColorBGRA(value.R, value.G, value.B, 90);
-            }
+            return ColorBGRA.FromRgba(c.ToArgb());
         }
 
         public static void Initialize(Utility.HpBarDamageIndicator.DamageToUnitDelegate damageToUnit)
@@ -48,7 +42,7 @@ namespace IreliaTheWillOfCarrying
 
             // Apply needed field delegate for damage calculation
             CustomDamageIndicator.damageToUnit = damageToUnit;
-            Color = System.Drawing.Color.Aqua;
+            Color = System.Drawing.Color.DarkCyan;
 
             // Register event handlers
             Drawing.OnDraw += Drawing_OnDraw;
@@ -81,7 +75,7 @@ namespace IreliaTheWillOfCarrying
 
                 // Draw the DirectX line
                 line.Begin();
-                line.Draw(new[] { startPoint, endPoint }, _colorBgra);
+                line.Draw(new[] { startPoint, endPoint }, ColorBgra(System.Drawing.Color.DarkCyan));
                 line.End();
             }
         }

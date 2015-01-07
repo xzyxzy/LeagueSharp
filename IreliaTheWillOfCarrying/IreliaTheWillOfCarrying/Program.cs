@@ -310,7 +310,7 @@ namespace IreliaTheWillOfCarrying
             {
                 E.Cast(target, packetCasting);
             }
-            if (Config.Item(target.NetworkId+"_use").GetValue<bool>() && R.IsReady() && getBladeCount > 0 && Player.Distance(target,false) > 250)
+            if (Config.Item(target.NetworkId+"_use").GetValue<bool>() && R.IsReady() && getBladeCount > 0 && Player.Distance(target,false) > 300)
                 R.CastIfHitchanceEquals(target,HitChance.Medium, packetCasting);
         }
         private static bool isSlow(Obj_AI_Base unit)
