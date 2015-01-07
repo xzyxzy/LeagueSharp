@@ -31,7 +31,8 @@ namespace IreliaTheWillOfCarrying
 
         public static ColorBGRA ColorBgra(System.Drawing.Color c)
         {
-            return ColorBGRA.FromRgba(c.ToArgb());
+            var color = ColorBGRA.FromRgba(c.ToArgb());
+            return new ColorBGRA(color.R, color.B, color.G, 90);
         }
 
         public static void Initialize(Utility.HpBarDamageIndicator.DamageToUnitDelegate damageToUnit)
