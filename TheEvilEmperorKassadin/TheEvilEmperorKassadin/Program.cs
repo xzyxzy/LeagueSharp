@@ -272,6 +272,14 @@ namespace TheEvilEmperorKassadin
                     ? ObjectManager.Player.Spellbook.GetSpell(skill).ManaCost * ObjectManager.Player.GetSpell(skill).Ammo 
                         : ObjectManager.Player.Spellbook.GetSpell(skill).ManaCost;*/
         }
+        public static int flaskCount
+        {
+            get
+            {
+                var flask = ObjectManager.Player.Buffs.FirstOrDefault(b => b.DisplayName == "ItemCrystalFlask");
+                return flask == null ? 0 : flask.Count;
+            }
+        }
         public static void PotionManager()
         {
             // FlaskOfCrystalWater - Mana Potion

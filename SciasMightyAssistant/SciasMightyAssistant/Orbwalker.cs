@@ -234,8 +234,7 @@ namespace SciasMightyAssistant
         {
             if (LastAATick <= Environment.TickCount)
             {
-//                Game.PrintChat("+ " + BaseWindUp * AttackSpeed * 20 * getExtraDelay());
-                return (Environment.TickCount - 20 + Game.Ping / 2 >= LastAATick + BaseWindUp*AttackSpeed*20*getExtraDelay()) && Move;
+                return (Environment.TickCount + Game.Ping / 2 >= LastAATick + Player.AttackCastDelay * AttackSpeed * 1000 ) && Move;
             }
 
             return false;
@@ -335,19 +334,18 @@ namespace SciasMightyAssistant
 
                     if (_lastTarget != null && _lastTarget.IsValid && _lastTarget != target)
                     {
-                        LastAATick = Environment.TickCount + Game.Ping / 2; //Last aa trick is +, by SAC:R it's -
+                        LastAATick = Environment.TickCount + Game.Ping / 2;
                     }
 
                     _lastTarget = target;
                     return;
                 }
             }
-
-            /*
+            
             if (IsTargetMelee(Player) && target!= null && GetRealDistance(target) < Orbwalker._config.SubMenu("melee").Item("MeleeStickyRange").GetValue<Slider>().Value)
             {
                 MoveTo(target.Position);
-            }*/
+            }
 
             if (CanMove())
                 MoveTo(position);
@@ -445,9 +443,9 @@ namespace SciasMightyAssistant
 
             public Orbwalker(Menu attachToMenu)
             {
-			    Game.PrintChat("");
-			    Game.PrintChat("");
-			    Game.PrintChat("");
+			    Game.PrintChat(" ");
+			    Game.PrintChat(" ");
+			    Game.PrintChat(" ");
 			    Game.PrintChat("<font color='#D859CD'>¸¸.•*¨*••*¨*•.¸¸¸¸.•*¨*••*¨*•.¸¸¸¸.•*¨*••*¨*•.¸¸</font>");
 			    Game.PrintChat("<font color='#adec00'>            Scias Mighty Assistant</font>");
                 Game.PrintChat("<font color='#adec00'>                   Has been loaded!</font>");
@@ -488,6 +486,10 @@ namespace SciasMightyAssistant
                 lc.AddItem(new MenuItem("AttackEnemies", "Attack Enemies").SetValue(true));
                 lc.AddItem(new MenuItem("MinionPriority", "Prioritise Last Hit Over Harass").SetValue(true));
 
+                // Melee menu
+                var melee = new Menu("Melee", "melee");
+                melee.AddItem(new MenuItem("MeleeStickyRange", "Stick to target extra range").SetValue(new Slider(0, 0, 300)));
+
                 // drawing menu
                 var draw = new Menu("Drawing", "drawings");
                 draw.AddItem(new MenuItem("AACircle","Champion Range Circle").SetShared().SetValue(new Circle(true, Color.FromArgb(255, 0, 189, 22))));
@@ -501,24 +503,24 @@ namespace SciasMightyAssistant
                 _config.AddSubMenu(lasthit);
                 _config.AddSubMenu(lc);
                 _config.AddSubMenu(freeze);
-//                _config.AddSubMenu(melee);
+                _config.AddSubMenu(melee);
                 _config.AddSubMenu(draw);
-
+                /*
                 _config.AddItem(new MenuItem("setExtraDelay", "Extra movement delay").SetShared().SetValue(new Slider(1, 1, 30)));
 
-                _config.Item("setExtraDelay").ValueChanged += Orbwalker_ValueChanged;
+                _config.Item("setExtraDelay").ValueChanged += Orbwalker_ValueChanged;*/
 
 
                 Player = ObjectManager.Player;
                 Game.OnGameUpdate += GameOnOnGameUpdate;
                 Drawing.OnDraw += DrawingOnOnDraw;
             }
-
+            /*
             void Orbwalker_ValueChanged(object sender, OnValueChangeEventArgs e)
             {
 //                Game.PrintChat("New: " + e.GetNewValue<Slider>().Value);
                 setExtraDelay(e.GetNewValue<Slider>().Value);
-            }
+            }*/
 
             public Mode CurrentMode
             {
