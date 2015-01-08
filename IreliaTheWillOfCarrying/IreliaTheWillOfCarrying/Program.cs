@@ -8,6 +8,14 @@ using LeagueSharp.Common;
 
 namespace IreliaTheWillOfCarrying
 {
+    enum sequence_R
+    {
+        On_Click,
+        After_AA,
+        Always,
+        On_Clicking,
+        Off
+    }
     class Program
     {
         internal static Menu Config = new Menu("Irelia W.O.C","scias_irelia",true);
@@ -21,6 +29,7 @@ namespace IreliaTheWillOfCarrying
         private static Items.Item healthPot = new Items.Item(ItemData.Health_Potion.Id);
         private static Items.Item manaPot = new Items.Item(ItemData.Mana_Potion.Id);
         private static Items.Item crystallineFlask = new Items.Item(ItemData.Crystalline_Flask.Id);
+        private static bool TapKeyPressed;
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
@@ -64,6 +73,7 @@ namespace IreliaTheWillOfCarrying
             Config.AddItem(new MenuItem("1", "-----"));
             Config.AddItem(new MenuItem("stunGap", "Use (E) to stun gap closers").SetValue(true));
             Config.AddItem(new MenuItem("interrupt", "Use (Q) + (E) to interrupt spells").SetValue(true));
+            Config.AddItem(new MenuItem("useR", "Use (R) mode").SetValue(new StringList(new[] { "Off", "On Press", "When available", "After AA", "On Clicking"})));
             Config.AddItem(new MenuItem("2", "-----"));
             Config.AddItem(new MenuItem("ignite", "Use Ignite").SetValue(true));
             Config.AddItem(new MenuItem("packets", "Use Packets").SetValue(true));
@@ -80,17 +90,55 @@ namespace IreliaTheWillOfCarrying
             CustomDamageIndicator.Initialize(getPossibleDamage);
             Config.AddToMainMenu();
             Game.OnGameUpdate += Game_OnGameUpdate;
+            Game.OnWndProc += Game_OnWndProc;
             Orbwalking.BeforeAttack += Orbwalking_BeforeAttack;
             Interrupter.OnPossibleToInterrupt += Interrupter_OnPossibleToInterrupt;
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Drawing.OnDraw += Drawing_OnDraw;
         }
 
+        static void Game_OnWndProc(WndEventArgs args)
+        {
+            if (args.Msg == (uint)WindowsMessages.WM_KEYUP)
+            {
+                if (sequence_R.On_Clicking == useRseq)
+                {
+                    if (getBladeCount > 0 && R.IsReady())
+                    {
+                        Obj_AI_Hero targetSelectorGetTarget = TargetSelector.GetTarget(R.Range, TargetSelector.DamageType.Physical);
+                        if (targetSelectorGetTarget != null)
+                            R.Cast(targetSelectorGetTarget, packetCasting);
+                    }
+                }
+                if (sequence_R.On_Click == useRseq)
+                {
+                    TapKeyPressed = true;
+                }
+            }
+        }
+        static sequence_R useRseq
+        {
+            get
+            {
+                if(Config.Item("useR").GetValue<StringList>().SelectedIndex == 0)
+                        return sequence_R.Off;
+                if(Config.Item("useR").GetValue<StringList>().SelectedIndex == 1)
+                        return sequence_R.On_Click;
+                if(Config.Item("useR").GetValue<StringList>().SelectedIndex == 2)
+                    return sequence_R.Always;
+                if (Config.Item("useR").GetValue<StringList>().SelectedIndex == 3)
+                    return sequence_R.After_AA;
+                if (Config.Item("useR").GetValue<StringList>().SelectedIndex == 4)
+                    return sequence_R.On_Clicking;
+                return sequence_R.Off;
+            }
+        }
+
         static void Orbwalking_BeforeAttack(Orbwalking.BeforeAttackEventArgs args)
         {
             if(args.Unit.IsMe && args.Target.IsEnemy)
             {
-                if(Orb.ActiveMode == Orbwalking.OrbwalkingMode.Combo)
+                if(Orb.ActiveMode == Orbwalking.OrbwalkingMode.Combo && ((TapKeyPressed && useRseq == sequence_R.On_Click) || useRseq == sequence_R.Always || useRseq == sequence_R.After_AA))
                 {
                     if (R.IsReady() && args.Target.IsEnemy && Config.Item(args.Target.NetworkId+"_use").GetValue<bool>())
                     {
@@ -125,7 +173,7 @@ namespace IreliaTheWillOfCarrying
         {
             foreach(var spell in SpellList.Where(s => s.Level > 0 && Config.Item("draw"+s.Slot).GetValue<Circle>().Active))
             {
-                Utility.DrawCircle(Player.Position, spell.Range, Config.Item("draw" + spell.Slot).GetValue<Circle>().Color);
+                Utility.DrawCircle(Player.Position, spell.Range, Config.Item("draw" + spell.Slot).GetValue<Circle>().Color, 5, 30);
             }
             if(Config.Item("drawMinion").GetValue<bool>())
             {
@@ -197,9 +245,8 @@ namespace IreliaTheWillOfCarrying
         {
             PotionManager();
             if (Config.Item("secure").GetValue<bool>())
-            {
                 secureKills();
-            }
+            if (getBladeCount < 1 && TapKeyPressed) TapKeyPressed = false;
             switch(Orb.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
@@ -310,7 +357,7 @@ namespace IreliaTheWillOfCarrying
             {
                 E.Cast(target, packetCasting);
             }
-            if (Config.Item(target.NetworkId+"_use").GetValue<bool>() && R.IsReady() && getBladeCount > 0 && Player.Distance(target,false) > 300)
+            if (((TapKeyPressed && useRseq == sequence_R.On_Click) || useRseq == sequence_R.Always) && Config.Item(target.NetworkId+"_use").GetValue<bool>() && R.IsReady() && getBladeCount > 0 && Player.Distance(target,false) > 300)
                 R.CastIfHitchanceEquals(target,HitChance.Medium, packetCasting);
         }
         private static bool isSlow(Obj_AI_Base unit)
@@ -319,10 +366,17 @@ namespace IreliaTheWillOfCarrying
         }
         private static void OnEscape()
         {
-            var nearestMinion = getNearestMinion(Player, Q.Range);
             var target = TargetSelector.GetTarget(250f, TargetSelector.DamageType.Magical);
             Orbwalking.Orbwalk(target != null && E.IsReady() ? target : null, Game.CursorPos);
-            if (target != null)
+            Obj_AI_Base nearestMinion = null;
+            var winions = MinionManager.GetMinions(Q.Range).OrderBy(m => m.Distance(Player, false)).ThenBy(m => m.Health < getRealDamageQ(m));
+            foreach (var minion in winions)
+            {
+                nearestMinion = minion;
+                break;
+            }
+
+            if (target != null && nearestMinion == null)
             {
                 if (E.IsReady() && target.IsFacing(Player))
                     E.Cast(target, packetCasting);
