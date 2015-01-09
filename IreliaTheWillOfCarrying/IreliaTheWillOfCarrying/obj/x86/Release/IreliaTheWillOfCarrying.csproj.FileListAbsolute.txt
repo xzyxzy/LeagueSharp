@@ -1,0 +1,16 @@
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\IreliaTheWillOfCarrying.exe.config
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\IreliaTheWillOfCarrying.exe
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\IreliaTheWillOfCarrying.pdb
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\LeagueSharp.Common.dll
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\LeagueSharp.dll
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\SharpDX.Direct3D9.dll
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\SharpDX.dll
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\SharpDX.Toolkit.dll
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\SharpDX.Toolkit.Graphics.dll
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\clipper_library.dll
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\LeagueSharp.xml
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\SharpDX.Toolkit.xml
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\bin\x86\Release\SharpDX.Toolkit.Graphics.xml
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\obj\x86\Release\IreliaTheWillOfCarrying.csprojResolveAssemblyReference.cache
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\obj\x86\Release\IreliaTheWillOfCarrying.exe
+C:\Users\Scias-PC\Documents\IreliaTheWillOfCarrying\IreliaTheWillOfCarrying\obj\x86\Release\IreliaTheWillOfCarrying.pdb
