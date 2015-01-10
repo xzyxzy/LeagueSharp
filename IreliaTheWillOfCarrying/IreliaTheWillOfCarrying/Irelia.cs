@@ -49,7 +49,8 @@ namespace IreliaTheWillOfCarrying
             misc.AddItem(new MenuItem("packet", "Packet Casting").SetValue(true));
             misc.AddItem(new MenuItem("ignite", "Use ignite").SetValue(true));
             misc.AddItem(new MenuItem("interrupt", "Interrupt spells with (Q minion)+(E stun)").SetValue(false));
-            misc.AddItem(new MenuItem("gap", "Gap-Closers => ").SetValue(new StringList(new[] {"Off", "Stun", "Slow", "Any"}, 3)));
+            misc.AddItem(new MenuItem("gap", "Gap-Closers => ").SetValue(new StringList(new[] { "Off", "Stun", "Slow", "Any" }, 3)));
+            misc.AddItem(new MenuItem("eusage", "Use (E) => ").SetValue(new StringList(new[] { "Stun", "Slow", "Any" }, 2)));
             Config.AddSubMenu(misc);
 
             Game.OnGameUpdate += Game_OnGameUpdate;
@@ -120,6 +121,7 @@ namespace IreliaTheWillOfCarrying
 
             /* Below goes logic of buttons */
             if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.None) return;
+            var useE = Config.Item("eusage").GetValue<StringList>().SelectedIndex;
 
             var target = TargetSelector.GetTarget(Q.Range*2, TargetSelector.DamageType.Physical);
             if (target != null)
@@ -155,6 +157,8 @@ namespace IreliaTheWillOfCarrying
                     }
                     if (E.IsReady() && target.IsValidTarget(E.Range))
                     {
+                        if ((useE == 0 && target.HealthPercentage() > ObjectManager.Player.HealthPercentage())
+                            || (useE == 2 && target.HealthPercentage() < ObjectManager.Player.HealthPercentage()) || useE == 3)
                         E.Cast(target, PacketCasting);
                     }
                     if (W.IsReady() && target.IsValidTarget(250f))
