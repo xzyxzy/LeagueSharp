@@ -169,7 +169,12 @@ namespace IreliaTheWillOfCarrying
                 var mined = MinionManager.GetMinions(Q.Range);
                 if (Config.Item("useQLC").GetValue<bool>() && Q.IsReady())
                 {
-                    foreach (var minion in mined.Where(minion => minion.Health < DamageManager.GetSpellDamageQ(minion)).Where(minion => minion.Health > ObjectManager.Player.GetAutoAttackDamage(minion)))
+                    foreach (
+                        var minion in
+                            mined.Where(minion => minion.Health < DamageManager.GetSpellDamageQ(minion))
+                                .Where(minion => minion.Health > ObjectManager.Player.GetAutoAttackDamage(minion))
+                                .Where(minion => minion.Distance(ObjectManager.Player) >
+                                                 Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)))
                     {
                         Orbwalking.ResetAutoAttackTimer();
                         Q.Cast(minion, PacketCasting);
