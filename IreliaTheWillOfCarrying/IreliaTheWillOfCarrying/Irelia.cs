@@ -108,6 +108,7 @@ namespace IreliaTheWillOfCarrying
                                         h.Health <
                                         DamageManager.GetSpellDamageQ(h)))
                     {
+                        Orbwalking.ResetAutoAttackTimer();
                         Q.Cast(unit, PacketCasting);
                     }
                 }
@@ -134,12 +135,14 @@ namespace IreliaTheWillOfCarrying
                     {
                         if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
                         {
+                            Orbwalking.ResetAutoAttackTimer();
                             Q.Cast(nearestMinion, PacketCasting);
                         }
                         if (W.IsReady() && !DamageManager.HasHitenBuff &&
                             ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) +
                             DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
                         {
+                            Orbwalking.ResetAutoAttackTimer();
                             W.Cast(PacketCasting);
                             Q.Cast(nearestMinion, PacketCasting);
                         }
@@ -169,6 +172,7 @@ namespace IreliaTheWillOfCarrying
                     foreach (
                         var minion in mined.Where(minion => minion.Health < DamageManager.GetSpellDamageQ(minion)))
                     {
+                        Orbwalking.ResetAutoAttackTimer();
                         Q.Cast(minion, PacketCasting);
                     }
                 }
@@ -180,6 +184,7 @@ namespace IreliaTheWillOfCarrying
                                                                 m.BaseSkinName.Contains("Dragon") ||
                                                                 m.BaseSkinName.Contains("Baron"))))
                     {
+                        Orbwalking.ResetAutoAttackTimer();
                         Q.Cast(minionBig, PacketCasting);
                     }
                 }
