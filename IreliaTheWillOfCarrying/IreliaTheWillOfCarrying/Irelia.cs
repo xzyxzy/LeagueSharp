@@ -129,22 +129,28 @@ namespace IreliaTheWillOfCarrying
                 if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
                     Walker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
                 {
-                    // todo: bug doesnt use q ?
-                    if (Q.IsReady() && nearestMinion.Distance(target, false) < ObjectManager.Player.Distance(target, false) &&
-                        nearestMinion != null)
+                    if (Q.IsReady())
                     {
-                        if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                        if (nearestMinion.Distance(target, false) < ObjectManager.Player.Distance(target, false) &&
+                            nearestMinion != null)
                         {
-                            Orbwalking.ResetAutoAttackTimer();
-                            Q.Cast(nearestMinion, PacketCasting);
+                            if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                            {
+                                Orbwalking.ResetAutoAttackTimer();
+                                Q.Cast(nearestMinion, PacketCasting);
+                            }
+                            if (W.IsReady() && !DamageManager.HasHitenBuff &&
+                                ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) +
+                                DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                            {
+                                Orbwalking.ResetAutoAttackTimer();
+                                W.Cast(PacketCasting);
+                                Q.Cast(nearestMinion, PacketCasting);
+                            }
                         }
-                        if (W.IsReady() && !DamageManager.HasHitenBuff &&
-                            ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) +
-                            DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                        else
                         {
-                            Orbwalking.ResetAutoAttackTimer();
-                            W.Cast(PacketCasting);
-                            Q.Cast(nearestMinion, PacketCasting);
+                            Q.Cast(target, PacketCasting);
                         }
                     }
                     if (E.IsReady() && target.IsValidTarget(E.Range))
