@@ -22,6 +22,7 @@ namespace IreliaTheWillOfCarrying
                         spell.IsReady() ? Color.Coral : Color.Crimson);
                 }
             }
+
         }
     }
 }

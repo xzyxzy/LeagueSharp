@@ -2,6 +2,7 @@
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using Color = System.Drawing.Color;
 
 namespace IreliaTheWillOfCarrying
 {
@@ -52,6 +53,10 @@ namespace IreliaTheWillOfCarrying
             misc.AddItem(
                 new MenuItem("gap", "Gap-Closers => ").SetValue(new StringList(new[] {"Off", "Stun", "Slow", "Any"}, 3)));
             misc.AddItem(new MenuItem("eusage", "Use (E) => ").SetValue(new StringList(new[] {"Stun", "Slow", "Any"}, 2)));
+
+            misc.AddItem(new MenuItem("Draw_ComboDamage", "Draw Combo Damage", true).SetValue(true));
+            misc.AddItem(new MenuItem("Draw_Fill", "Draw Combo Damage Fill", true).SetValue(new Circle(true, Color.FromArgb(90, 255, 169, 4))));
+                
             Config.AddSubMenu(misc);
 
             Game.OnGameUpdate += Game_OnGameUpdate;
@@ -59,6 +64,24 @@ namespace IreliaTheWillOfCarrying
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Orbwalking.AfterAttack += Orbwalking_AfterAttack;
             Drawing.OnDraw += RenderingManager.Drawing_OnDraw;
+
+
+            DamageIndicator.DamageToUnit = DamageManager.TotalDamageToUnit;
+            DamageIndicator.Enabled = Config.Item("Draw_ComboDamage").GetValue<bool>();
+            DamageIndicator.Fill = Config.Item("Draw_Fill").GetValue<Circle>().Active;
+            DamageIndicator.FillColor = Config.Item("Draw_Fill").GetValue<Circle>().Color;
+
+            Config.Item("Draw_ComboDamage").ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs eventArgs)
+                {
+                    DamageIndicator.Enabled = eventArgs.GetNewValue<bool>();
+                };
+            Config.Item("Draw_Fill").ValueChanged +=
+                delegate(object sender, OnValueChangeEventArgs eventArgs)
+                {
+                    DamageIndicator.Fill = eventArgs.GetNewValue<Circle>().Active;
+                    DamageIndicator.FillColor = eventArgs.GetNewValue<Circle>().Color;
+                };
         }
 
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
@@ -92,17 +115,24 @@ namespace IreliaTheWillOfCarrying
         {
             try
             {
-                if (ObjectManager.Get<Obj_AI_Hero>() == null || !Q.IsReady()) return;
+                if (ObjectManager.Get<Obj_AI_Hero>() == null) return;
                 foreach (
                     var unit in
                         ObjectManager.Get<Obj_AI_Hero>()
                             .Where(
                                 h =>
-                                    h.IsEnemy && h.IsValidTarget(Q.Range - 150f) && h.IsVisible &&
-                                    h.Health <
-                                    DamageManager.GetSpellDamageQ(h)))
+                                    h.IsEnemy && h.IsValidTarget(Q.Range) && h.IsVisible &&
+                                    (h.Health < DamageManager.GetSpellDamageQ(h) || h.Health < ObjectManager.Player.GetSpellDamage(h, SpellSlot.E) || h.Health < ObjectManager.Player.GetSpellDamage(h,SpellSlot.E)*DamageManager.TranscendentBladesCount)))
                 {
-                    Q.Cast(unit, PacketCasting);
+                    if (unit.Health < DamageManager.GetSpellDamageQ(unit) && Q.IsReady())
+                        Q.Cast(unit, PacketCasting);
+                    if (unit.IsValidTarget(E.Range) && unit.Health < ObjectManager.Player.GetSpellDamage(unit, SpellSlot.E))
+                        E.Cast(unit, PacketCasting);
+                    if (DamageManager.TranscendentBladesCount > 0 &&
+                        unit.Health <
+                        ObjectManager.Player.GetSpellDamage(unit, SpellSlot.R)*
+                        DamageManager.TranscendentBladesCount)
+                        R.Cast(unit, PacketCasting);
                 }
             }
             catch (Exception ex)
@@ -132,13 +162,13 @@ namespace IreliaTheWillOfCarrying
                             if (nearestMinion.Distance(target, false) < ObjectManager.Player.Distance(target, false) &&
                                 nearestMinion != null)
                             {
-                                if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                                if (DamageManager.GetSpellDamageQ(nearestMinion) > nearestMinion.Health + 35)
                                 {
                                     Q.Cast(nearestMinion, PacketCasting);
                                 }
                                 if (W.IsReady() &&
                                     ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) +
-                                    DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                                    DamageManager.GetSpellDamageQ(nearestMinion) > nearestMinion.Health + 35)
                                 {
                                     W.Cast(PacketCasting);
                                     Q.Cast(nearestMinion, PacketCasting);
@@ -157,7 +187,7 @@ namespace IreliaTheWillOfCarrying
                                 useE == 3)
                                 E.Cast(target, PacketCasting);
                         }
-                        if (W.IsReady() && target.IsValidTarget(250f))
+                        if (W.IsReady() && target.IsValidTarget(200f))
                         {
                             W.Cast(PacketCasting);
                         }
@@ -183,8 +213,8 @@ namespace IreliaTheWillOfCarrying
                     {
                         foreach (
                             var minion in
-                                mined.Where(minion => minion.Health < DamageManager.GetSpellDamageQ(minion))
-                                    .Where(minion => minion.Health > ObjectManager.Player.GetAutoAttackDamage(minion))
+                                mined.Where(minion => minion.Health + 35 < DamageManager.GetSpellDamageQ(minion))
+                                    .Where(minion => minion.Health + 35 > ObjectManager.Player.GetAutoAttackDamage(minion))
                                     .Where(minion => ObjectManager.Player.Distance(minion, true) >
                                                      Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)))
                         {
@@ -193,7 +223,7 @@ namespace IreliaTheWillOfCarrying
                     }
                     if (Config.Item("alwaysBig").GetValue<bool>() && Q.IsReady())
                     {
-                        foreach (var minionBig in mined.Where(m => m.Health < DamageManager.GetSpellDamageQ(m)
+                        foreach (var minionBig in mined.Where(m => m.Health + 35 < DamageManager.GetSpellDamageQ(m)
                                                                    &&
                                                                    (m.BaseSkinName.Contains("MinionSiege") ||
                                                                     m.BaseSkinName.Contains("Dragon") ||
