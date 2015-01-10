@@ -96,34 +96,40 @@ namespace IreliaTheWillOfCarrying
             try
             {
                 // null exception
-                foreach (
-                    var unit in
-                        ObjectManager.Get<Obj_AI_Hero>()
-                        .Where(h => h.IsEnemy && h.IsValidTarget(Q.Range - 150f) && h.IsVisible && h.Health < DamageManager.GetSpellDamageQ(h) + (DamageManager.HasHitenBuff ? ObjectManager.Player.GetSpellDamage(h,SpellSlot.W) : 0)))
+                if (ObjectManager.Get<Obj_AI_Hero>() != null && Q.IsReady())
                 {
-                    if (Config.Item("ignite").GetValue<bool>())
-                        DamageManager.UseIgnite(unit);
-                    if (!DamageManager.HasHitenBuff)
-                        W.Cast(unit, PacketCasting);
-                    if (Q.IsReady() && DamageManager.GetSpellDamageQ(unit) > unit.Health)
+                    foreach (
+                        var unit in
+                            ObjectManager.Get<Obj_AI_Hero>()
+                                .Where(
+                                    h =>
+                                        h.IsEnemy && h.IsValidTarget(Q.Range - 150f) && h.IsVisible &&
+                                        h.Health <
+                                        DamageManager.GetSpellDamageQ(h)))
+                    {
                         Q.Cast(unit, PacketCasting);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Game.PrintChat("Kill-Steal failed to initialize!"+ex);
+                Game.PrintChat("Kill-Steal failed to initialize!");
             }
 
             /* Below goes logic of buttons */
             if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.None) return;
 
-            var target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
+            var target = TargetSelector.GetTarget(Q.Range*2, TargetSelector.DamageType.Physical);
             if (target != null)
             {
+                /*
+                if (Config.Item("ignite").GetValue<bool>())
+                    DamageManager.UseIgnite(target);*/
                 var nearestMinion = MinionsManager.GetNearestMinionNearPosition(target.Position);
                 if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
                     Walker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
                 {
+                    // todo: bug doesnt use q ?
                     if (Q.IsReady() && nearestMinion.Distance(target, false) < ObjectManager.Player.Distance(target, false) &&
                         nearestMinion != null)
                     {
@@ -139,21 +145,18 @@ namespace IreliaTheWillOfCarrying
                             Q.Cast(nearestMinion, PacketCasting);
                         }
                     }
-                    else
+                    if (E.IsReady() && target.IsValidTarget(E.Range))
                     {
-                        if (E.IsReady() && target.IsValidTarget(E.Range))
-                        {
-                            E.Cast(target, PacketCasting);
-                        }
-                        if (W.IsReady() && target.IsValidTarget(250f))
-                        {
-                            W.Cast(PacketCasting);
-                        }
-                        if (R.IsReady())
-                        {
-                            if (ObjectManager.Player.Distance(target,false) > E.Range && !E.IsReady())
-                                R.Cast(PacketCasting);
-                        }
+                        E.Cast(target, PacketCasting);
+                    }
+                    if (W.IsReady() && target.IsValidTarget(250f))
+                    {
+                        W.Cast(PacketCasting);
+                    }
+                    if (R.IsReady())
+                    {
+                        if (ObjectManager.Player.Distance(target,false) > E.Range && !E.IsReady())
+                            R.Cast(PacketCasting);
                     }
                 }
             }
