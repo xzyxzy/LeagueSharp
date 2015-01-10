@@ -17,7 +17,7 @@ namespace IreliaTheWillOfCarrying
         private const int Height = 8;
 
         public static Color Color = Color.Lime;
-        public static Color FillColor = Color.DodgerBlue;
+        public static Color FillColor = Color.FromArgb(90,Color.Goldenrod);
         public static bool Fill = true;
 
         public static bool Enabled = true;
