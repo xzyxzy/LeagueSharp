@@ -49,8 +49,9 @@ namespace IreliaTheWillOfCarrying
             misc.AddItem(new MenuItem("packet", "Packet Casting").SetValue(true));
             misc.AddItem(new MenuItem("ignite", "Use ignite").SetValue(true));
             misc.AddItem(new MenuItem("interrupt", "Interrupt spells with (Q minion)+(E stun)").SetValue(false));
-            misc.AddItem(new MenuItem("gap", "Gap-Closers => ").SetValue(new StringList(new[] { "Off", "Stun", "Slow", "Any" }, 3)));
-            misc.AddItem(new MenuItem("eusage", "Use (E) => ").SetValue(new StringList(new[] { "Stun", "Slow", "Any" }, 2)));
+            misc.AddItem(
+                new MenuItem("gap", "Gap-Closers => ").SetValue(new StringList(new[] {"Off", "Stun", "Slow", "Any"}, 3)));
+            misc.AddItem(new MenuItem("eusage", "Use (E) => ").SetValue(new StringList(new[] {"Stun", "Slow", "Any"}, 2)));
             Config.AddSubMenu(misc);
 
             Game.OnGameUpdate += Game_OnGameUpdate;
@@ -58,10 +59,6 @@ namespace IreliaTheWillOfCarrying
             AntiGapcloser.OnEnemyGapcloser += AntiGapcloser_OnEnemyGapcloser;
             Orbwalking.AfterAttack += Orbwalking_AfterAttack;
             Drawing.OnDraw += RenderingManager.Drawing_OnDraw;
-            Drawing.OnPreReset += RenderingManager.Drawing_OnPreReset;
-            Drawing.OnPostReset += RenderingManager.Drawing_OnOnPostReset;
-            AppDomain.CurrentDomain.DomainUnload += RenderingManager.OnProcessExit;
-            AppDomain.CurrentDomain.ProcessExit += RenderingManager.OnProcessExit;
         }
 
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
@@ -77,8 +74,7 @@ namespace IreliaTheWillOfCarrying
 
         private static void Interrupter_OnPossibleToInterrupt(Obj_AI_Base unit, InterruptableSpell spell)
         {
-            var m = Config.Item("interrupt").GetValue<bool>();
-            if (!unit.IsEnemy || !E.IsReady() || !(unit.HealthPercentage() > ObjectManager.Player.HealthPercentage()) || !unit.IsChanneling)
+            if (!Config.Item("interrupt").GetValue<bool>() || !unit.IsEnemy || !E.IsReady() || !(unit.HealthPercentage() > ObjectManager.Player.HealthPercentage()) || !unit.IsChanneling)
                 return;
             var minion = MinionsManager.GetNearestMinionNearPosition(unit.Position);
             if (unit.CountEnemysInRange(Q.Range) >= (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ? 3 : 2))
@@ -91,41 +87,39 @@ namespace IreliaTheWillOfCarrying
         {
             get { return Config.Item("packet").GetValue<bool>(); }
         }
-        private static void Game_OnGameUpdate(EventArgs args)
+
+        private static void KillSteal()
         {
-            if (ObjectManager.Player.IsDead || ObjectManager.Player.InFountain() || ObjectManager.Player.IsRecalling()) return;
-            PotionManager.__init();
             try
             {
-                // null exception
-                if (ObjectManager.Get<Obj_AI_Hero>() != null && Q.IsReady())
+                if (ObjectManager.Get<Obj_AI_Hero>() == null || !Q.IsReady()) return;
+                foreach (
+                    var unit in
+                        ObjectManager.Get<Obj_AI_Hero>()
+                            .Where(
+                                h =>
+                                    h.IsEnemy && h.IsValidTarget(Q.Range - 150f) && h.IsVisible &&
+                                    h.Health <
+                                    DamageManager.GetSpellDamageQ(h)))
                 {
-                    foreach (
-                        var unit in
-                            ObjectManager.Get<Obj_AI_Hero>()
-                                .Where(
-                                    h =>
-                                        h.IsEnemy && h.IsValidTarget(Q.Range - 150f) && h.IsVisible &&
-                                        h.Health <
-                                        DamageManager.GetSpellDamageQ(h)))
-                    {
-                        Orbwalking.ResetAutoAttackTimer();
-                        Q.Cast(unit, PacketCasting);
-                    }
+                    Q.Cast(unit, PacketCasting);
                 }
             }
             catch (Exception ex)
             {
-                Game.PrintChat("Kill-Steal failed to initialize!");
+                Game.PrintChat("Exception! "+ex);
             }
-
+        }
+        private static void Game_OnGameUpdate(EventArgs args)
+        {
+            if (ObjectManager.Player.IsDead || ObjectManager.Player.InFountain() || ObjectManager.Player.IsRecalling()) return;
+//            PotionManager.__init();
+            KillSteal();
             /* Below goes logic of buttons */
             if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.None) return;
-            try
-            {
                 var useE = Config.Item("eusage").GetValue<StringList>().SelectedIndex;
-
                 var target = TargetSelector.GetTarget(Q.Range*2, TargetSelector.DamageType.Physical);
+                // for some reason it bugsplats, i don't know why, whenever i press a button it does that.
                 if (target != null)
                 {
                     DamageManager.UseIgnite(target);
@@ -140,21 +134,19 @@ namespace IreliaTheWillOfCarrying
                             {
                                 if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
                                 {
-                                    Orbwalking.ResetAutoAttackTimer();
                                     Q.Cast(nearestMinion, PacketCasting);
                                 }
-                                if (W.IsReady() && !DamageManager.HasHitenBuff &&
+                                if (W.IsReady() &&
                                     ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) +
                                     DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
                                 {
-                                    Orbwalking.ResetAutoAttackTimer();
                                     W.Cast(PacketCasting);
                                     Q.Cast(nearestMinion, PacketCasting);
                                 }
                             }
                             else
                             {
-                                if (!target.IsValidTarget(E.IsReady() ? E.Range : 300))
+                                if (!target.IsValidTarget((E.IsReady() ? E.Range : 300)))
                                     Q.Cast(target, PacketCasting);
                             }
                         }
@@ -176,7 +168,13 @@ namespace IreliaTheWillOfCarrying
                         }
                     }
                 }
+            Farming();
+        }
 
+        internal static void Farming()
+        {
+            try
+            {
                 if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
                     Walker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
                 {
@@ -187,10 +185,9 @@ namespace IreliaTheWillOfCarrying
                             var minion in
                                 mined.Where(minion => minion.Health < DamageManager.GetSpellDamageQ(minion))
                                     .Where(minion => minion.Health > ObjectManager.Player.GetAutoAttackDamage(minion))
-                                    .Where(minion => minion.Distance(ObjectManager.Player) >
+                                    .Where(minion => ObjectManager.Player.Distance(minion, true) >
                                                      Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)))
                         {
-                            Orbwalking.ResetAutoAttackTimer();
                             Q.Cast(minion, PacketCasting);
                         }
                     }
@@ -202,7 +199,6 @@ namespace IreliaTheWillOfCarrying
                                                                     m.BaseSkinName.Contains("Dragon") ||
                                                                     m.BaseSkinName.Contains("Baron"))))
                         {
-                            Orbwalking.ResetAutoAttackTimer();
                             Q.Cast(minionBig, PacketCasting);
                         }
                     }
@@ -210,9 +206,8 @@ namespace IreliaTheWillOfCarrying
             }
             catch (Exception ex)
             {
-                Game.PrintChat("Combo failed! => "+ex);
+                Game.PrintChat("Exception at farming!");
             }
-
         }
 
         private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
