@@ -152,7 +152,8 @@ namespace IreliaTheWillOfCarrying
                         }
                         else
                         {
-                            Q.Cast(target, PacketCasting);
+                            if (!target.IsValidTarget(E.IsReady() ? E.Range : 300))
+                                Q.Cast(target, PacketCasting);
                         }
                     }
                     if (E.IsReady() && target.IsValidTarget(E.Range))
