@@ -118,73 +118,71 @@ namespace IreliaTheWillOfCarrying
             if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.None) return;
 
             var target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
-            if (Q.IsReady())
+            if (target != null)
             {
-                if (target != null)
+                var nearestMinion = MinionsManager.GetNearestMinionNearPosition(target.Position);
+                if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                    Walker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
                 {
-                    var nearestMinion = MinionsManager.GetNearestMinionNearPosition(target.Position);
-                    if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
-                        Walker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
+                    if (Q.IsReady() && nearestMinion.Distance(target, false) < ObjectManager.Player.Distance(target, false) &&
+                        nearestMinion != null)
                     {
-                        if (nearestMinion.Distance(target, false) < ObjectManager.Player.Distance(target, false) &&
-                            nearestMinion != null)
+                        if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
                         {
-                            if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
-                            {
-                                Q.Cast(nearestMinion, PacketCasting);
-                            }
-                            if (W.IsReady() && !DamageManager.HasHitenBuff &&
-                                ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) +
-                                DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
-                            {
-                                W.Cast(PacketCasting);
-                                Q.Cast(nearestMinion, PacketCasting);
-                            }
+                            Q.Cast(nearestMinion, PacketCasting);
                         }
-                        else
+                        if (W.IsReady() && !DamageManager.HasHitenBuff &&
+                            ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) +
+                            DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
                         {
-                            if (E.IsReady() && target.IsValidTarget(E.Range))
-                            {
-                                E.Cast(target, PacketCasting);
-                            }
-                            if (W.IsReady() && target.IsValidTarget(250f))
-                            {
-                                W.Cast(PacketCasting);
-                            }
-                            if (R.IsReady())
-                            {
-                                if (ObjectManager.Player.Distance(target,false) > E.Range && !E.IsReady())
-                                    R.Cast(PacketCasting);
-                            }
+                            W.Cast(PacketCasting);
+                            Q.Cast(nearestMinion, PacketCasting);
                         }
                     }
-                }
-
-                if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
-                    Walker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
-                {
-                    var mined = MinionManager.GetMinions(Q.Range);
-                    if (Config.Item("useQLC").GetValue<bool>())
+                    else
                     {
-                        foreach (
-                            var minion in mined.Where(minion => minion.Health > DamageManager.GetSpellDamageQ(minion)))
+                        if (E.IsReady() && target.IsValidTarget(E.Range))
                         {
-                            Q.Cast(minion, PacketCasting);
+                            E.Cast(target, PacketCasting);
                         }
-                    }
-                    if (Config.Item("alwaysBig").GetValue<bool>())
-                    {
-                        foreach (var minionBig in mined.Where(m => m.Health < DamageManager.GetSpellDamageQ(m)
-                                                                   &&
-                                                                   (m.BaseSkinName.Contains("MinionSiege") ||
-                                                                    m.BaseSkinName.Contains("Dragon") ||
-                                                                    m.BaseSkinName.Contains("Baron"))))
+                        if (W.IsReady() && target.IsValidTarget(250f))
                         {
-                            Q.Cast(minionBig, PacketCasting);
+                            W.Cast(PacketCasting);
+                        }
+                        if (R.IsReady())
+                        {
+                            if (ObjectManager.Player.Distance(target,false) > E.Range && !E.IsReady())
+                                R.Cast(PacketCasting);
                         }
                     }
                 }
             }
+
+            if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                Walker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
+            {
+                var mined = MinionManager.GetMinions(Q.Range);
+                if (Config.Item("useQLC").GetValue<bool>() && Q.IsReady())
+                {
+                    foreach (
+                        var minion in mined.Where(minion => minion.Health > DamageManager.GetSpellDamageQ(minion)))
+                    {
+                        Q.Cast(minion, PacketCasting);
+                    }
+                }
+                if (Config.Item("alwaysBig").GetValue<bool>() && Q.IsReady())
+                {
+                    foreach (var minionBig in mined.Where(m => m.Health < DamageManager.GetSpellDamageQ(m)
+                                                                &&
+                                                                (m.BaseSkinName.Contains("MinionSiege") ||
+                                                                m.BaseSkinName.Contains("Dragon") ||
+                                                                m.BaseSkinName.Contains("Baron"))))
+                    {
+                        Q.Cast(minionBig, PacketCasting);
+                    }
+                }
+            }
+            
         }
 
         private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
