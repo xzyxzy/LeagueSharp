@@ -53,6 +53,7 @@ namespace IreliaTheWillOfCarrying
         }
         internal static void UseIgnite(Obj_AI_Hero unit)
         {
+            if (Irelia.Config.Item("ignite").GetValue<bool>() && unit.IsValidTarget(600f)) return;
             var damage = Irelia.IgniteSlot == SpellSlot.Unknown || ObjectManager.Player.Spellbook.CanUseSpell(Irelia.IgniteSlot) != SpellState.Ready ? 0 : ObjectManager.Player.GetSummonerSpellDamage(unit, Damage.SummonerSpell.Ignite);
             var targetHealth = unit.Health;
             var hasPots = Items.HasItem(ItemData.Health_Potion.Id) || Items.HasItem(ItemData.Crystalline_Flask.Id);

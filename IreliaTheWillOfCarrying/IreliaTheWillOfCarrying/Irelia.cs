@@ -47,6 +47,7 @@ namespace IreliaTheWillOfCarrying
 
             var misc = new Menu("Settings", "sets");
             misc.AddItem(new MenuItem("packet", "Packet Casting").SetValue(true));
+            misc.AddItem(new MenuItem("ignite", "Use ignite").SetValue(true));
             misc.AddItem(new MenuItem("interrupt", "Interrupt spells with (Q minion)+(E stun)").SetValue(false));
             misc.AddItem(new MenuItem("gap", "Gap-Closers => ").SetValue(new StringList(new[] {"Off", "Stun", "Slow", "Any"}, 3)));
             Config.AddSubMenu(misc);
@@ -122,9 +123,7 @@ namespace IreliaTheWillOfCarrying
             var target = TargetSelector.GetTarget(Q.Range*2, TargetSelector.DamageType.Physical);
             if (target != null)
             {
-                /*
-                if (Config.Item("ignite").GetValue<bool>())
-                    DamageManager.UseIgnite(target);*/
+                DamageManager.UseIgnite(target);
                 var nearestMinion = MinionsManager.GetNearestMinionNearPosition(target.Position);
                 if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
                     Walker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
