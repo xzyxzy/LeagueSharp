@@ -79,7 +79,7 @@
   <ItemGroup>
     <Compile Include="DamageManager.cs" />
     <Compile Include="Irelia.cs" />
-    <Compile Include="MinionManager.cs" />
+    <Compile Include="MinionsManager.cs" />
     <Compile Include="PotionManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RenderingManager.cs" />

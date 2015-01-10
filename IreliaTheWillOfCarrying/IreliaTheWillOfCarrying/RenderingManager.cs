@@ -36,8 +36,12 @@ namespace IreliaTheWillOfCarrying
             var target = TargetSelector.GetTarget(Irelia.Q.Range*2, TargetSelector.DamageType.Physical);
             if (target != null)
             {
-                Render.Circle.DrawCircle(MinionManager.GetNearestMinionNearPosition(target.Position).Position, 150f,
-                    Color.CadetBlue);
+                var nearestMinion = MinionsManager.GetNearestMinionNearPosition(target.Position);
+                if (nearestMinion != null)
+                {
+                    var canKill = Irelia.W.IsReady() ? nearestMinion.Health < ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) + DamageManager.GetSpellDamageQ(nearestMinion) : nearestMinion.Health < DamageManager.GetSpellDamageQ(nearestMinion);
+                    Render.Circle.DrawCircle(nearestMinion.Position, 75f, canKill ? Color.CadetBlue : Color.IndianRed);
+                }
             }
             foreach (var unit in ObjectManager.Get<Obj_AI_Hero>().Where(u => u.IsValidTarget()))
             {

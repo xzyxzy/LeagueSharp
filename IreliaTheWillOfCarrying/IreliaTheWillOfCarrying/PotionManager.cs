@@ -1,4 +1,5 @@
-﻿using LeagueSharp;
+﻿using System;
+using LeagueSharp;
 using LeagueSharp.Common;
 
 namespace IreliaTheWillOfCarrying
@@ -12,41 +13,48 @@ namespace IreliaTheWillOfCarrying
 
         internal static void __init()
         {
-            // FlaskOfCrystalWater - Mana Potion
-            // RegenerationPotion - Health Potion
-            // ItemCrystalFlask - Flask
-            if (ObjectManager.Player.InFountain() || ObjectManager.Player.IsRecalling()) return;
-
-            // Health Potion
-            if (HealthPot.IsReady() && !ObjectManager.Player.HasBuff("RegenerationPotion", true) &&
-                !ObjectManager.Player.HasBuff("ItemCrystalFlask", true))
+            try
             {
-                if (ObjectManager.Player.CountEnemysInRange((Irelia.R.Range + Irelia.Q.Range)*2) > 0 &&
-                    ObjectManager.Player.Health + 150 < ObjectManager.Player.MaxHealth
-                    || ObjectManager.Player.Health < ObjectManager.Player.MaxHealth*0.5)
+                // FlaskOfCrystalWater - Mana Potion
+                // RegenerationPotion - Health Potion
+                // ItemCrystalFlask - Flask
+                if (ObjectManager.Player.InFountain() || ObjectManager.Player.IsRecalling()) return;
+
+                // Health Potion
+                if (HealthPot.IsOwned() && HealthPot.IsReady() && !ObjectManager.Player.HasBuff("RegenerationPotion", true) &&
+                    !ObjectManager.Player.HasBuff("ItemCrystalFlask", true))
                 {
-                    HealthPot.Cast();
+                    if (ObjectManager.Player.CountEnemysInRange((Irelia.R.Range + Irelia.Q.Range)*2) > 0 &&
+                        ObjectManager.Player.Health + 150 < ObjectManager.Player.MaxHealth
+                        || ObjectManager.Player.Health < ObjectManager.Player.MaxHealth*0.5)
+                    {
+                        HealthPot.Cast();
+                    }
                 }
-            }
 
-            // Mana Potion
-            if (!ObjectManager.Player.HasBuff("FlaskOfCrystalWater", true) &&
-                !ObjectManager.Player.HasBuff("ItemCrystalFlask", true) && ManaPot.IsReady() &&
-                ObjectManager.Player.CountEnemysInRange((Irelia.R.Range + Irelia.Q.Range)*2) > 0 &&
-                ObjectManager.Player.Mana < ManaCost(SpellSlot.Q) + ManaCost(SpellSlot.E) + ManaCost(SpellSlot.R))
+                // Mana Potion
+                if (ManaPot.IsOwned() && ManaPot.IsReady() && !ObjectManager.Player.HasBuff("FlaskOfCrystalWater", true) &&
+                    !ObjectManager.Player.HasBuff("ItemCrystalFlask", true) && ManaPot.IsReady() &&
+                    ObjectManager.Player.CountEnemysInRange((Irelia.R.Range + Irelia.Q.Range)*2) > 0 &&
+                    ObjectManager.Player.Mana < ManaCost(SpellSlot.Q) + ManaCost(SpellSlot.E) + ManaCost(SpellSlot.R))
+                {
+                    ManaPot.Cast();
+                }
+
+                // Crystalline Flask
+                if (CrystallineFlask.IsOwned() && !ObjectManager.Player.HasBuff("FlaskOfCrystalWater", true)
+                    && !ObjectManager.Player.HasBuff("ItemCrystalFlask", true)
+                    && !ObjectManager.Player.HasBuff("RegenerationPotion", true)
+                    && CrystallineFlask.IsReady() &&
+                    ObjectManager.Player.CountEnemysInRange((Irelia.R.Range + Irelia.Q.Range)*2) > 0 &&
+                    (ObjectManager.Player.Mana < ManaCost(SpellSlot.W) + ManaCost(SpellSlot.E) + ManaCost(SpellSlot.R) ||
+                     ObjectManager.Player.Health + 120 < ObjectManager.Player.MaxHealth))
+                    CrystallineFlask.Cast();
+            }
+            catch (Exception ex)
             {
-                ManaPot.Cast();
+                Game.PrintChat("Potion manager failed!");   
             }
-
-            // Crystalline Flask
-            if (!ObjectManager.Player.HasBuff("FlaskOfCrystalWater", true)
-                && !ObjectManager.Player.HasBuff("ItemCrystalFlask", true)
-                && !ObjectManager.Player.HasBuff("RegenerationPotion", true)
-                && CrystallineFlask.IsReady() &&
-                ObjectManager.Player.CountEnemysInRange((Irelia.R.Range + Irelia.Q.Range)*2) > 0 &&
-                (ObjectManager.Player.Mana < ManaCost(SpellSlot.W) + ManaCost(SpellSlot.E) + ManaCost(SpellSlot.R) ||
-                 ObjectManager.Player.Health + 120 < ObjectManager.Player.MaxHealth))
-                CrystallineFlask.Cast();
         }
 
         internal static float ManaCost(SpellSlot skill)

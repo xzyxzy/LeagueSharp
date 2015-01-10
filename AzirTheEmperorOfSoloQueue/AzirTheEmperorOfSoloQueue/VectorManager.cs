@@ -14,6 +14,7 @@ namespace AzirTheEmperorOfSoloQueue
         internal static GameObject AzirObject;
         internal static void GameObject_OnCreate(GameObject obj, EventArgs args)
         {
+            Game.PrintChat("Object created! "+obj.Name);
             if (obj.Name == "AzirSoldier")
             {
                 AzirObject = obj;
@@ -31,7 +32,7 @@ namespace AzirTheEmperorOfSoloQueue
         internal static Vector2 NormalizePosition(Vector2 position)
         {
             var pos = ObjectManager.Player.Position.To2D();
-            return pos.Distance(position) > 450 ? (position - pos).Normalized() * 450 : position;
+            return pos.Distance(position) > 450 ? (pos - position).Normalized() * 450 : position;
         }
 
         internal static bool IsWithinSoldierRange(Obj_AI_Base unit)

@@ -28,6 +28,9 @@ namespace IreliaTheWillOfCarrying
             E.SetTargetted(0.15f, 75f);
             R.SetSkillshot(0.15f, 80f, 1500f, false, SkillshotType.SkillshotLine);
             IgniteSlot = ObjectManager.Player.GetSpellSlot("SummonerDot");
+            RenderingManager.Spells.Add(Q);
+            RenderingManager.Spells.Add(E);
+            RenderingManager.Spells.Add(R);
 
             Config = new Menu("Scias Irelia", "irelia", true);
             var ts = new Menu("Target Selector", "ts");
@@ -38,12 +41,13 @@ namespace IreliaTheWillOfCarrying
             Config.AddToMainMenu();
 
             var lc = new Menu("Lane Clear/Last Hit", "lc");
-            lc.AddItem(new MenuItem("useQLC", "Use (Q) to last hit"));
+            lc.AddItem(new MenuItem("useQLC", "Use (Q) to last hit").SetValue(false));
+            lc.AddItem(new MenuItem("alwaysBig", "Always Q big minions").SetValue(true));
             Config.AddSubMenu(lc);
 
             var misc = new Menu("Settings", "sets");
             misc.AddItem(new MenuItem("packet", "Packet Casting").SetValue(true));
-            misc.AddItem(new MenuItem("interrupt", "Interrupt spells with (Q minion)+(E stun)").SetValue(new StringList(new []{"Off", "If I won't die"},2)));
+            misc.AddItem(new MenuItem("interrupt", "Interrupt spells with (Q minion)+(E stun)").SetValue(false));
             misc.AddItem(new MenuItem("gap", "Gap-Closers => ").SetValue(new StringList(new[] {"Off", "Stun", "Slow", "Any"}, 3)));
             Config.AddSubMenu(misc);
 
@@ -71,15 +75,14 @@ namespace IreliaTheWillOfCarrying
 
         private static void Interrupter_OnPossibleToInterrupt(Obj_AI_Base unit, InterruptableSpell spell)
         {
-            var m = Config.Item("interrupt").GetValue<StringList>().SelectedIndex;
-            if (m == 0 || !unit.IsEnemy || !E.IsReady() || !(unit.HealthPercentage() > ObjectManager.Player.HealthPercentage()) || !unit.IsChanneling)
+            var m = Config.Item("interrupt").GetValue<bool>();
+            if (!unit.IsEnemy || !E.IsReady() || !(unit.HealthPercentage() > ObjectManager.Player.HealthPercentage()) || !unit.IsChanneling)
                 return;
-            var minion = MinionManager.GetNearestMinionNearPosition(unit.Position);
-            if ((m == 1 && unit.CountEnemysInRange(Q.Range) < (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ? 3 : 2)))
-            {
-                Q.Cast(minion ?? unit, true);
-                E.Cast(unit, true);
-            }
+            var minion = MinionsManager.GetNearestMinionNearPosition(unit.Position);
+            if (unit.CountEnemysInRange(Q.Range) >= (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ? 3 : 2))
+                return;
+            Q.Cast(minion ?? unit, true);
+            E.Cast(unit, true);
         }
 
         private static bool PacketCasting
@@ -88,96 +91,111 @@ namespace IreliaTheWillOfCarrying
         }
         private static void Game_OnGameUpdate(EventArgs args)
         {
-            if (ObjectManager.Player.InFountain() || ObjectManager.Player.IsRecalling()) return;
+            if (ObjectManager.Player.IsDead || ObjectManager.Player.InFountain() || ObjectManager.Player.IsRecalling()) return;
             PotionManager.__init();
-
-            foreach (var unit in ObjectManager.Get<Obj_AI_Hero>().Where(h => h.IsEnemy && h.IsValidTarget(Q.Range-150f) && h.IsVisible))
+            try
             {
-                if (Config.Item("ignite").GetValue<bool>())
-                    DamageManager.UseIgnite(unit);
-                if (Q.IsReady() && DamageManager.GetSpellDamageQ(unit) > unit.Health)
-                    Q.Cast(unit, PacketCasting);
-                if (!W.IsReady() || !Q.IsReady() ||
-                    !(unit.Health <
-                      ObjectManager.Player.GetSpellDamage(unit, SpellSlot.Q) +
-                      ObjectManager.Player.GetSpellDamage(unit, SpellSlot.W))) continue;
-                W.Cast(PacketCasting);
-                Q.Cast(unit, PacketCasting);
+                // null exception
+                foreach (
+                    var unit in
+                        ObjectManager.Get<Obj_AI_Hero>()
+                        .Where(h => h.IsEnemy && h.IsValidTarget(Q.Range - 150f) && h.IsVisible && h.Health < DamageManager.GetSpellDamageQ(h) + (DamageManager.HasHitenBuff ? ObjectManager.Player.GetSpellDamage(h,SpellSlot.W) : 0)))
+                {
+                    if (Config.Item("ignite").GetValue<bool>())
+                        DamageManager.UseIgnite(unit);
+                    if (!DamageManager.HasHitenBuff)
+                        W.Cast(unit, PacketCasting);
+                    if (Q.IsReady() && DamageManager.GetSpellDamageQ(unit) > unit.Health)
+                        Q.Cast(unit, PacketCasting);
+                }
             }
-            var target = TargetSelector.GetTarget(Q.Range*2, TargetSelector.DamageType.Physical);
-            if (Walker.ActiveMode != Orbwalking.OrbwalkingMode.None) return;
-            var nearestMinion = target == null ? null : MinionManager.GetNearestMinionNearPosition(target.Position);
+            catch (Exception ex)
+            {
+                Game.PrintChat("Kill-Steal failed to initialize!"+ex);
+            }
+
+            /* Below goes logic of buttons */
+            if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.None) return;
+
+            var target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Physical);
             if (Q.IsReady())
             {
-                if (nearestMinion != null &&
-                    (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed ||
-                     Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo))
+                if (target != null)
                 {
-                    if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                    var nearestMinion = MinionsManager.GetNearestMinionNearPosition(target.Position);
+                    if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ||
+                        Walker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed)
                     {
-                        Q.Cast(nearestMinion, true);
-                    }
-                    // this will use W if we dont have enough dmg and then the loop will reload and use the above Q
-                    if (W.IsReady() && !DamageManager.HasHitenBuff && ObjectManager.Player.GetSpellDamage(nearestMinion,SpellSlot.W) + DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
-                    {
-                        W.Cast(true);
+                        if (nearestMinion.Distance(target, false) < ObjectManager.Player.Distance(target, false) &&
+                            nearestMinion != null)
+                        {
+                            if (DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                            {
+                                Q.Cast(nearestMinion, PacketCasting);
+                            }
+                            if (W.IsReady() && !DamageManager.HasHitenBuff &&
+                                ObjectManager.Player.GetSpellDamage(nearestMinion, SpellSlot.W) +
+                                DamageManager.GetSpellDamageQ(nearestMinion)*0.9 > nearestMinion.Health)
+                            {
+                                W.Cast(PacketCasting);
+                                Q.Cast(nearestMinion, PacketCasting);
+                            }
+                        }
+                        else
+                        {
+                            if (E.IsReady() && target.IsValidTarget(E.Range))
+                            {
+                                E.Cast(target, PacketCasting);
+                            }
+                            if (W.IsReady() && target.IsValidTarget(250f))
+                            {
+                                W.Cast(PacketCasting);
+                            }
+                            if (R.IsReady())
+                            {
+                                if (ObjectManager.Player.Distance(target,false) > E.Range && !E.IsReady())
+                                    R.Cast(PacketCasting);
+                            }
+                        }
                     }
                 }
-                else
+
+                if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
+                    Walker.ActiveMode == Orbwalking.OrbwalkingMode.LastHit)
                 {
-                    if (Config.Item("useQLC").GetValue<bool>() && (Walker.ActiveMode == Orbwalking.OrbwalkingMode.LaneClear ||
-                        Orbwalking.OrbwalkingMode.LastHit == Walker.ActiveMode))
+                    var mined = MinionManager.GetMinions(Q.Range);
+                    if (Config.Item("useQLC").GetValue<bool>())
                     {
-                        var mined = LeagueSharp.Common.MinionManager.GetMinions(Q.Range);
                         foreach (
                             var minion in mined.Where(minion => minion.Health > DamageManager.GetSpellDamageQ(minion)))
                         {
-                            Q.Cast(minion);
-                        }
-
-                        var bigs =
-                            ObjectManager.Get<Obj_AI_Minion>()
-                                .Where(
-                                    m =>
-                                        m.Health < DamageManager.GetSpellDamageQ(m) && m.IsValidTarget(E.Range) &&
-                                        (m.BaseSkinName.Contains("MinionSiege") || m.BaseSkinName.Contains("Dragon") ||
-                                         m.BaseSkinName.Contains("Baron")));
-                        foreach (var minionbig in bigs)
-                        {
-                            Q.Cast(minionbig);
-                            break;
+                            Q.Cast(minion, PacketCasting);
                         }
                     }
-                    else
+                    if (Config.Item("alwaysBig").GetValue<bool>())
                     {
-                        Q.Cast(target, true);
+                        foreach (var minionBig in mined.Where(m => m.Health < DamageManager.GetSpellDamageQ(m)
+                                                                   &&
+                                                                   (m.BaseSkinName.Contains("MinionSiege") ||
+                                                                    m.BaseSkinName.Contains("Dragon") ||
+                                                                    m.BaseSkinName.Contains("Baron"))))
+                        {
+                            Q.Cast(minionBig, PacketCasting);
+                        }
                     }
                 }
-            }
-            if (target == null) return;
-            if (W.IsReady() && target.IsValidTarget(250f) && Walker.ActiveMode != Orbwalking.OrbwalkingMode.LaneClear &&
-                Walker.ActiveMode != Orbwalking.OrbwalkingMode.LastHit)
-            {
-                W.Cast(true);
-            }
-            if (E.IsReady() && target.IsValidTarget(425f) && Walker.ActiveMode != Orbwalking.OrbwalkingMode.LaneClear &&
-                Walker.ActiveMode != Orbwalking.OrbwalkingMode.LastHit)
-            {
-                E.Cast(target, true);
-            }
-            if (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo && DamageManager.TranscendentBladesCount > 0 &&
-                R.IsReady() && !target.IsValidTarget(300f))
-            {
-                R.Cast(target, true);
             }
         }
 
         private static void Orbwalking_AfterAttack(AttackableUnit unit, AttackableUnit target)
         {
             if (Orbwalking.OrbwalkingMode.Combo != Walker.ActiveMode) return;
-            if (!target.IsEnemy || !unit.IsMe || !target.IsValidTarget(R.Range)) return;
-            if (!E.IsReady() && !target.IsValidTarget(E.Range - 25f))
-                R.Cast(target.Position, true);
+            if (!target.IsValidTarget(R.Range) || !unit.IsMe || !target.IsEnemy || !target.IsVisible || target.IsDead)
+                return;
+            if (!E.IsReady())
+            {
+                R.Cast(target.Position, PacketCasting);
+            }
         }
     }
 }

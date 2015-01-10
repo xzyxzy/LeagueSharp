@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using LeagueSharp;
 using LeagueSharp.Common;
@@ -36,7 +37,7 @@ namespace AzirTheEmperorOfSoloQueue
             Config.AddItem(new MenuItem("trainMode", "Chu chuuu!!!").SetValue(new KeyBind('Z', KeyBindType.Press)));
 
             Config.AddToMainMenu();
-            Q = new Spell(SpellSlot.Q, 1250);
+            Q = new Spell(SpellSlot.Q, 2500);
             W = new Spell(SpellSlot.W, 450);
             E = new Spell(SpellSlot.E, 1250);
             R = new Spell(SpellSlot.R, 500);
@@ -51,8 +52,7 @@ namespace AzirTheEmperorOfSoloQueue
         
         internal static void Game_OnGameUpdate(EventArgs args)
         {
-            if (Player.InFountain() || Player.IsRecalling()) return;
-
+//            if (Player.InFountain() || Player.IsRecalling()) return;
             EscapeMode();
             FightMode();
         }
@@ -93,13 +93,21 @@ namespace AzirTheEmperorOfSoloQueue
         }
 
         internal static void EscapeMode()
+        
         {
             if (!Config.Item("trainMode").GetValue<KeyBind>().Active) return;
 
-            if (!W.IsReady() || !Q.IsReady() || !E.IsReady()) return;
-            W.Cast(VectorManager.NormalizePosition(Game.CursorPos.To2D()), true);
-            E.Cast(VectorManager.NormalizePosition(Game.CursorPos.To2D()), true);
-            Q.Cast(Game.CursorPos, true);
+
+            if (!W.IsReady()) return;
+            if (VectorManager.AzirObject == null)
+                W.Cast(VectorManager.NormalizePosition(Game.CursorPos.To2D()), true);
+
+            if (VectorManager.AzirObject != null)
+            {
+                E.Cast(VectorManager.AzirObject.Position, true);
+                Utility.DelayAction.Add(50, () => Q.Cast(Game.CursorPos, true));
+                
+            }
         }
     }
 }
