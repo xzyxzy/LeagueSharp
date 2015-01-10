@@ -165,7 +165,7 @@ namespace IreliaTheWillOfCarrying
                 if (Config.Item("useQLC").GetValue<bool>() && Q.IsReady())
                 {
                     foreach (
-                        var minion in mined.Where(minion => minion.Health > DamageManager.GetSpellDamageQ(minion)))
+                        var minion in mined.Where(minion => minion.Health < DamageManager.GetSpellDamageQ(minion)))
                     {
                         Q.Cast(minion, PacketCasting);
                     }
