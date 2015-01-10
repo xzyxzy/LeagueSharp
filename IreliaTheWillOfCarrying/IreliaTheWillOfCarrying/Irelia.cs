@@ -169,8 +169,7 @@ namespace IreliaTheWillOfCarrying
                 var mined = MinionManager.GetMinions(Q.Range);
                 if (Config.Item("useQLC").GetValue<bool>() && Q.IsReady())
                 {
-                    foreach (
-                        var minion in mined.Where(minion => minion.Health < DamageManager.GetSpellDamageQ(minion)))
+                    foreach (var minion in mined.Where(minion => minion.Health < DamageManager.GetSpellDamageQ(minion)).Where(minion => minion.Health > ObjectManager.Player.GetAutoAttackDamage(minion)))
                     {
                         Orbwalking.ResetAutoAttackTimer();
                         Q.Cast(minion, PacketCasting);
