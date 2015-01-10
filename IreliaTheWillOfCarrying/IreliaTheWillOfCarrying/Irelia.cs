@@ -214,9 +214,7 @@ namespace IreliaTheWillOfCarrying
                         foreach (
                             var minion in
                                 mined.Where(minion => minion.Health + 35 < DamageManager.GetSpellDamageQ(minion))
-                                    .Where(minion => minion.Health + 35 > ObjectManager.Player.GetAutoAttackDamage(minion))
-                                    .Where(minion => ObjectManager.Player.Distance(minion, true) >
-                                                     Orbwalking.GetRealAutoAttackRange(ObjectManager.Player)))
+                                    .Where(minion => minion.Health + 35 > ObjectManager.Player.GetAutoAttackDamage(minion)))
                         {
                             Q.Cast(minion, PacketCasting);
                         }
