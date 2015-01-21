@@ -30,9 +30,6 @@ namespace AzirTheEmperorOfSoloQueue
             Orb = new Orbwalking.Orbwalker(orbz);
             Config.AddSubMenu(orbz);
 
-            Config.AddItem(new MenuItem("useR", "Use R").SetValue(true));
-            Config.AddItem(new MenuItem("trainMode", "Ride the train!").SetValue(new KeyBind('Z', KeyBindType.Press)));
-            Config.AddItem(new MenuItem("insec", "Insec target").SetValue(new KeyBind('T', KeyBindType.Press)));
 
             var draw = new Menu("Drawings", "draw");
             draw.AddItem(new MenuItem("drawInsec", "Draw Insec").SetValue(true));
@@ -40,7 +37,10 @@ namespace AzirTheEmperorOfSoloQueue
             draw.AddItem(new MenuItem("drawW", "Draw W range").SetValue(true));
             draw.AddItem(new MenuItem("drawE", "Draw E range").SetValue(true));
             draw.AddItem(new MenuItem("drawSoldier", "Draw Soldier range").SetValue(true));
-
+            Config.AddSubMenu(draw);
+            Config.AddItem(new MenuItem("useR", "Use R").SetValue(true));
+            Config.AddItem(new MenuItem("trainMode", "Ride the train!").SetValue(new KeyBind('Z', KeyBindType.Press)));
+            Config.AddItem(new MenuItem("insec", "Insec target").SetValue(new KeyBind('T', KeyBindType.Press)));
             Config.AddToMainMenu();
             Q = new Spell(SpellSlot.Q, 1250);
             W = new Spell(SpellSlot.W, 450);
