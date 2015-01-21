@@ -12,33 +12,34 @@ namespace AzirTheEmperorOfSoloQueue
         internal static List<GameObject> AzirObjects = new List<GameObject>();
         internal static void GameObject_OnCreate(GameObject obj, EventArgs args)
         {
-            Game.PrintChat("Object created! "+obj.Name);
-            if (obj.Name == "AzirSoldier")
+//            Game.PrintChat("Object created! "+obj.Name);
+            if (obj.Name.Contains("AzirSoldier"))
             {
                 AzirObjects.Add(obj);
             }
         }
 
-        internal static GameObject GetSoldierNearMouse
+        internal static GameObject GetSoldierNearPosition(Vector3 pos)
         {
-            get
-            {
-                return AzirObjects.FirstOrDefault(soldier => Game.CursorPos.Distance(soldier.Position) <= 450f);
-            }
+            var soilder = AzirObjects.OrderBy(x => pos.Distance(x.Position));
+            if (soilder.FirstOrDefault() != null)
+                return soilder.FirstOrDefault();
+            return AzirObjects.FirstOrDefault(soldier => pos.Distance(soldier.Position) <= 500f);
         }
 
         internal static void GameObject_OnDelete(GameObject sender, EventArgs args)
         {
-            if (sender.Name == "AzirSoldier")
+            if (AzirObjects.All(obj => obj.NetworkId != sender.NetworkId)) return;
+            foreach (var soldier in AzirObjects.Where(soldier => soldier.NetworkId == sender.NetworkId))
             {
-                AzirObjects.Remove(sender);
+                AzirObjects.Remove(soldier);
+                break;
             }
         }
 
-        internal static Vector2 NormalizePosition(Vector2 position)
+        internal static Vector3 MaxSoldierPosition(Vector3 position)
         {
-            var pos = ObjectManager.Player.Position.To2D();
-            return pos.Distance(position) > 450 ? (pos - position).Normalized() * 450 : position;
+            return ObjectManager.Player.Position.Extend(position, 450f);
         }
 
         internal static bool IsWithinSoldierRange(Obj_AI_Base unit)

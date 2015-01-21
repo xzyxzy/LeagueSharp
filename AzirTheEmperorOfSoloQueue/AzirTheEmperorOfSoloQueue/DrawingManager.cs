@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SharpDX;
+using Matrix = SharpDX.Matrix;
 
 namespace AzirTheEmperorOfSoloQueue
 {
@@ -11,13 +15,24 @@ namespace AzirTheEmperorOfSoloQueue
             Drawing.OnDraw += Drawing_OnDraw;
         }
 
+        public static double ToRadians(double val)
+        {
+            return (Math.PI / 180) * val;
+        }
+
         private static void Drawing_OnDraw(EventArgs args)
         {
-            var target = TargetSelector.GetTarget(2000f, TargetSelector.DamageType.Magical);
-            if (target != null)
+            if (Emperor.Config.Item("drawInsec").GetValue<bool>())
             {
-                Drawing.DrawLine(ObjectManager.Player.Position.To2D(), Game.CursorPos.To2D(), 15, System.Drawing.Color.Blue);
-                Drawing.DrawLine(Game.CursorPos.To2D(), target.Position.To2D(), 15, System.Drawing.Color.Blue);
+                var target = TargetSelector.GetTarget(1250f, TargetSelector.DamageType.Magical);
+                if (target != null)
+                {
+                    var newPos = Drawing.WorldToScreen(target.Position.Extend(Game.CursorPos, 450));
+                    Drawing.DrawLine(Drawing.WorldToScreen(ObjectManager.Player.Position), Drawing.WorldToScreen(target.Position.Extend(Game.CursorPos, 450)), 3, System.Drawing.Color.White);
+                    var extended = Drawing.WorldToScreen(target.Position.Extend(ObjectManager.Player.Position, -250));
+                    Drawing.DrawLine(newPos, extended, 3, System.Drawing.Color.Cyan);
+                    Utility.DrawCircle(Drawing.ScreenToWorld(extended), 30, System.Drawing.Color.Red);
+                }
             }
         }
     }
