@@ -56,7 +56,7 @@ namespace AzirTheEmperorOfSoloQueue
         
         internal static void Game_OnGameUpdate(EventArgs args)
         {
-            if (Player.InFountain() || Player.IsRecalling()) return;
+//            if (Player.InFountain() || Player.IsRecalling()) return;
             EscapeMode();
             FightMode();
             HarassMode();
