@@ -8,7 +8,7 @@ namespace AzirTheEmperorOfSoloQueue
 {
     class Emperor
     {
-        internal static Spell Q, W, E, R;
+        internal static Spell Q, QTrain, W, E, R;
         internal static SpellSlot IgniteSlot;
         internal static Menu Config;
         internal static Obj_AI_Hero Player;
@@ -53,14 +53,16 @@ namespace AzirTheEmperorOfSoloQueue
             Config.AddItem(new MenuItem("trainMode", "Ride the train!").SetValue(new KeyBind('Z', KeyBindType.Press)));
             Config.AddItem(new MenuItem("insec", "Insec target").SetValue(new KeyBind('T', KeyBindType.Press)));
             Config.AddToMainMenu();
-            Q = new Spell(SpellSlot.Q, 1250+345);
+            Q = new Spell(SpellSlot.Q, 800);
+            QTrain = new Spell(SpellSlot.Q, 800);
             W = new Spell(SpellSlot.W, 450);
-            E = new Spell(SpellSlot.E, 1250);
-            R = new Spell(SpellSlot.R, 500);
+            E = new Spell(SpellSlot.E, 2500);
+            R = new Spell(SpellSlot.R, 580);
 
-            Q.SetSkillshot(0.25f, 100, 500, false, SkillshotType.SkillshotLine);
-            W.SetSkillshot(0f, 425, float.MaxValue, false, SkillshotType.SkillshotCircle);
-            R.SetSkillshot(0.2f, 700, 1300, false, SkillshotType.SkillshotLine);
+            Q.SetSkillshot(0.1f, 100, 1700, false, SkillshotType.SkillshotLine);
+            QTrain.SetSkillshot(0.25f, 100, 500, false, SkillshotType.SkillshotLine);
+            W.SetSkillshot(0f, 325, float.MaxValue, false, SkillshotType.SkillshotCircle);
+            R.SetSkillshot(0.5f, 700, 1400, false, SkillshotType.SkillshotLine);
             DrawingManager.SpellList.Add(Q);
             DrawingManager.SpellList.Add(W);
             DrawingManager.SpellList.Add(E);
@@ -165,7 +167,7 @@ namespace AzirTheEmperorOfSoloQueue
                     ObjectManager.Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                 }
             }
-            if (Q.IsReady())
+            if (Q.IsReady() && VectorManager.AzirObjects.Count > 0)
             {
                 Q.Cast(target, true);
             }
@@ -197,13 +199,13 @@ namespace AzirTheEmperorOfSoloQueue
                     {
                         E.Cast(pos1, true);
                     }
-                    if (Q.IsReady())
+                    if (QTrain.IsReady())
                     {
                         Utility.DelayAction.Add(
                             1000 *
                             (int)
                                 (ObjectManager.Player.Distance(pos1) /
-                                 500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2), () => { Q.Cast(pos2, true); });
+                                 500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2), () => { QTrain.Cast(pos2, true); });
                     }
                     if (R.IsReady() && !E.IsReady() && !Q.IsReady())
                     {
@@ -223,13 +225,13 @@ namespace AzirTheEmperorOfSoloQueue
                 E.Cast(nearest, true);
             }
             // wtf did i just write there
-            if (Q.IsReady() && ObjectManager.Player.Distance(Game.CursorPos) > 450f)
+            if (QTrain.IsReady() && ObjectManager.Player.Distance(Game.CursorPos) > 450f)
             {
                 Utility.DelayAction.Add(
                     1000*
                     (int)
                         (ObjectManager.Player.Distance(nearest)/
-                         500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2), () => { Q.Cast(Game.CursorPos, true); });
+                         500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2), () => { QTrain.Cast(Game.CursorPos, true); });
             }
         }
     }
