@@ -97,7 +97,7 @@ namespace IreliaTheWillOfCarrying
 
         private static void Interrupter_OnPossibleToInterrupt(Obj_AI_Base unit, InterruptableSpell spell)
         {
-            if (!Config.Item("interrupt").GetValue<bool>() || !unit.IsEnemy || !E.IsReady() || !(unit.HealthPercentage() > ObjectManager.Player.HealthPercentage()) || !unit.IsChanneling)
+            if (!Config.Item("interrupt").GetValue<bool>() || !unit.IsEnemy || !E.IsReady() || !(unit.HealthPercentage() > ObjectManager.Player.HealthPercentage()))
                 return;
             var minion = MinionsManager.GetNearestMinionNearPosition(unit.Position);
             if (unit.CountEnemysInRange(Q.Range) >= (Walker.ActiveMode == Orbwalking.OrbwalkingMode.Combo ? 3 : 2))

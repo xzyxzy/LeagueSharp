@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
@@ -11,13 +9,21 @@ namespace AzirTheEmperorOfSoloQueue
 {
     class VectorManager
     {
-        internal static GameObject AzirObject;
+        internal static List<GameObject> AzirObjects = new List<GameObject>();
         internal static void GameObject_OnCreate(GameObject obj, EventArgs args)
         {
             Game.PrintChat("Object created! "+obj.Name);
             if (obj.Name == "AzirSoldier")
             {
-                AzirObject = obj;
+                AzirObjects.Add(obj);
+            }
+        }
+
+        internal static GameObject GetSoldierNearMouse
+        {
+            get
+            {
+                return AzirObjects.FirstOrDefault(soldier => Game.CursorPos.Distance(soldier.Position) <= 450f);
             }
         }
 
@@ -25,7 +31,7 @@ namespace AzirTheEmperorOfSoloQueue
         {
             if (sender.Name == "AzirSoldier")
             {
-                AzirObject = null;
+                AzirObjects.Remove(sender);
             }
         }
 
@@ -37,15 +43,16 @@ namespace AzirTheEmperorOfSoloQueue
 
         internal static bool IsWithinSoldierRange(Obj_AI_Base unit)
         {
-            return unit.Distance(AzirObject.Position) <= 450;
+            return AzirObjects.Any(soldier => unit.Distance(soldier.Position) <= 450f);
         }
 
         internal static bool IsInFront(Vector3 unit, Vector3 direction)
         {
-            double infront = (ObjectManager.Player.Position.X - unit.X)*direction.X
-                             + (ObjectManager.Player.Position.Y - unit.Y)*direction.Y
-                             + (ObjectManager.Player.Position.Z - unit.Z)*direction.Z;
-            return infront > 0.0;
+            var toTarget = (unit - direction).Normalized();
+            /* True = Target is in front
+             * False = Target is behind
+             * */
+            return Vector3.Dot(toTarget, direction) > 0;
         }
     }
 }

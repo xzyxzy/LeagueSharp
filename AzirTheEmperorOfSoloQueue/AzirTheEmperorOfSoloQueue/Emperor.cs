@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
+using SharpDX.Direct3D9;
 
 namespace AzirTheEmperorOfSoloQueue
 {
@@ -48,6 +49,7 @@ namespace AzirTheEmperorOfSoloQueue
             Game.OnGameUpdate += Game_OnGameUpdate;
             GameObject.OnCreate += VectorManager.GameObject_OnCreate;
             GameObject.OnDelete += VectorManager.GameObject_OnDelete;
+            DrawingManager.Init();
         }
         
         internal static void Game_OnGameUpdate(EventArgs args)
@@ -59,55 +61,16 @@ namespace AzirTheEmperorOfSoloQueue
 
         internal static void FightMode()
         {
-            var target = TargetSelector.GetTarget(Q.Range, TargetSelector.DamageType.Magical);
-            if (target == null) return;
-            if (VectorManager.AzirObject == null && W.IsReady())
-            {
-                W.Cast(VectorManager.NormalizePosition(target.Position.To2D()), true);
-                if (VectorManager.IsWithinSoldierRange(target))
-                {
-                    Orbwalking.ResetAutoAttackTimer();
-                    Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-                }
-            }
-
-            if (VectorManager.IsWithinSoldierRange(target))
-            {
-                Orbwalking.ResetAutoAttackTimer();
-                Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-            }
-
-            if (VectorManager.AzirObject != null && Q.IsReady() && target.IsValidTarget(Q.Range))
-            {
-                Q.Cast(target, true);
-            }
-            if (VectorManager.AzirObject != null && E.IsReady() && target.IsValidTarget(E.Range))
-            {
-                // need to check if player is behind AzirObject
-                if (VectorManager.IsInFront(VectorManager.AzirObject.Position, target.Position))
-                {
-                    E.Cast(VectorManager.AzirObject.Position, true);
-                }
-            }
-
         }
 
         internal static void EscapeMode()
         
         {
             if (!Config.Item("trainMode").GetValue<KeyBind>().Active) return;
+            if (!W.IsReady() || !Q.IsReady()) return;
 
-
-            if (!W.IsReady()) return;
-            if (VectorManager.AzirObject == null)
-                W.Cast(VectorManager.NormalizePosition(Game.CursorPos.To2D()), true);
-
-            if (VectorManager.AzirObject != null)
-            {
-                E.Cast(VectorManager.AzirObject.Position, true);
-                Utility.DelayAction.Add(50, () => Q.Cast(Game.CursorPos, true));
-                
-            }
+            if (W.IsReady() && Player.Distance(VectorManager.GetSoldierNearMouse.Position) > 450f) W.Cast();
+            if (Q.IsReady()) Q.Cast(Game.CursorPos, true);
         }
     }
 }

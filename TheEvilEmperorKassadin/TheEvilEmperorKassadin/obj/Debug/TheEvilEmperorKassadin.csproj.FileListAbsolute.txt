@@ -1,0 +1,15 @@
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\TheEvilEmperorKassadin.exe.config
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\obj\Debug\TheEvilEmperorKassadin.csprojResolveAssemblyReference.cache
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\TheEvilEmperorKassadin.exe
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\TheEvilEmperorKassadin.pdb
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\LeagueSharp.Common.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\LeagueSharp.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\SharpDX.Direct3D9.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\SharpDX.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\SharpDX.Toolkit.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\SharpDX.Toolkit.Graphics.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\clipper_library.dll
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\SharpDX.Toolkit.xml
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\bin\Release\SharpDX.Toolkit.Graphics.xml
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\obj\Debug\TheEvilEmperorKassadin.exe
+C:\Users\Scias-PC\Documents\GitHub\LeagueSharp\TheEvilEmperorKassadin\TheEvilEmperorKassadin\obj\Debug\TheEvilEmperorKassadin.pdb

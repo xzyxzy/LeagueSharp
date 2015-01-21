@@ -48,7 +48,7 @@ namespace TheEvilEmperorKassadin
         static void Interrupter_OnPossibleToInterrupt(Obj_AI_Base unit, InterruptableSpell spell)
         {
             if (Config.Item("interruptSpells").GetValue<bool>() &&
-                    Q.IsReady() && unit.IsValidTarget(Q.Range) && unit.IsChanneling)
+                    Q.IsReady() && unit.IsValidTarget(Q.Range))
                 Q.Cast(unit, PacketCast);
         }
 
@@ -84,7 +84,7 @@ namespace TheEvilEmperorKassadin
             {
                 if(Orbwalking.OrbwalkingMode.None == Orb.ActiveMode)
                 {
-                    if (Utility.CountEnemysInRange((int)(Q.Range + R.Range)*2) < 1 && W.IsReady() && GetEstacks < 6)
+                    if (ObjectManager.Player.CountEnemysInRange((int)(Q.Range + R.Range)*2) < 1 && W.IsReady() && GetEstacks < 6)
                     {
                         W.Cast(PacketCast);
                     }
@@ -313,7 +313,7 @@ namespace TheEvilEmperorKassadin
         }
         private static void UseItems()
         {
-            var enemyCount = Utility.CountEnemysInRange((int)Q.Range);
+            var enemyCount = ObjectManager.Player.CountEnemysInRange(Q.Range);
             if (Config.SubMenu("itemMenu").Item("zh").GetValue<bool>())
             {
                 // honya
