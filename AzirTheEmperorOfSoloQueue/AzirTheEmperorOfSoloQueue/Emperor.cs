@@ -37,7 +37,7 @@ namespace AzirTheEmperorOfSoloQueue
 
             Config.AddItem(new MenuItem("trainMode", "Ride the train!").SetValue(new KeyBind('Z', KeyBindType.Press)));
             Config.AddItem(new MenuItem("insec", "Insec target").SetValue(new KeyBind('T', KeyBindType.Press)));
-            Config.AddItem(new MenuItem("draw", "Draw Insec").SetValue(true));
+            Config.AddItem(new MenuItem("drawInsec", "Draw Insec").SetValue(true));
 
             Config.AddToMainMenu();
             Q = new Spell(SpellSlot.Q, 1250);
