@@ -30,6 +30,18 @@ namespace AzirTheEmperorOfSoloQueue
             Orb = new Orbwalking.Orbwalker(orbz);
             Config.AddSubMenu(orbz);
 
+            var sel = new Menu("Configuration", "Config");
+            var useE = new Menu("Use E", "useeE");
+            useE.AddItem(new MenuItem("useE", "Use E").SetValue(true));
+            foreach (var minion in ObjectManager.Get<Obj_AI_Hero>().Where(h => h.IsEnemy))
+            {
+                useE.AddItem(new MenuItem("useE_"+minion.BaseSkinName,"Use E on " + minion.BaseSkinName).SetValue(true));
+            }
+            sel.AddItem(new MenuItem("useR", "Use R").SetValue(true));
+            sel.AddItem(new MenuItem("useAA", "Soldier AA in range").SetValue(true));
+            sel.AddItem(new MenuItem("trainDelay", "Train (-) delay").SetValue(new Slider(0, 0, 50)));
+            sel.AddSubMenu(useE);
+            Config.AddSubMenu(sel);
 
             var draw = new Menu("Drawings", "draw");
             draw.AddItem(new MenuItem("drawInsec", "Draw Insec").SetValue(true));
@@ -38,11 +50,10 @@ namespace AzirTheEmperorOfSoloQueue
             draw.AddItem(new MenuItem("drawE", "Draw E range").SetValue(true));
             draw.AddItem(new MenuItem("drawSoldier", "Draw Soldier range").SetValue(true));
             Config.AddSubMenu(draw);
-            Config.AddItem(new MenuItem("useR", "Use R").SetValue(true));
             Config.AddItem(new MenuItem("trainMode", "Ride the train!").SetValue(new KeyBind('Z', KeyBindType.Press)));
             Config.AddItem(new MenuItem("insec", "Insec target").SetValue(new KeyBind('T', KeyBindType.Press)));
             Config.AddToMainMenu();
-            Q = new Spell(SpellSlot.Q, 1250);
+            Q = new Spell(SpellSlot.Q, 1250+345);
             W = new Spell(SpellSlot.W, 450);
             E = new Spell(SpellSlot.E, 1250);
             R = new Spell(SpellSlot.R, 500);
@@ -92,6 +103,14 @@ namespace AzirTheEmperorOfSoloQueue
             if (Orbwalking.OrbwalkingMode.Mixed != Orb.ActiveMode) return;
             var target = TargetSelector.GetTarget(1250, TargetSelector.DamageType.Magical);
             if (target == null) return;
+            if (VectorManager.IsWithinSoldierRange(target) && Config.Item("useAA").GetValue<bool>())
+            {
+                if (Orbwalking.CanAttack())
+                {
+                    Orbwalking.LastAATick = Environment.TickCount;
+                    ObjectManager.Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                }
+            }
             if (VectorManager.AzirObjects.Count < 1)
             {
                 W.Cast(
@@ -122,11 +141,11 @@ namespace AzirTheEmperorOfSoloQueue
             if (Orbwalking.OrbwalkingMode.Combo != Orb.ActiveMode) return;
             var target = TargetSelector.GetTarget(1250+450, TargetSelector.DamageType.Magical);
             if (target == null) return;
-            if (VectorManager.IsWithinSoldierRange(target))
+            if (VectorManager.IsWithinSoldierRange(target) && Config.Item("useAA").GetValue<bool>())
             {
                 if (Orbwalking.CanAttack())
                 {
-                    Orbwalking.ResetAutoAttackTimer();
+                    Orbwalking.LastAATick = Environment.TickCount;
                     ObjectManager.Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                 }
             }
@@ -138,7 +157,7 @@ namespace AzirTheEmperorOfSoloQueue
                     Orbwalking.ResetAutoAttackTimer();
                     ObjectManager.Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                 }
-                if (!Q.IsReady() && ObjectManager.Player.Distance(target) <= 450f+450f)
+                if (!Q.IsReady() && ObjectManager.Player.Distance(target) <= 450f+325f)
                     // we use double because azir soldier double our range.
                 {
                     W.Cast(ObjectManager.Player.Distance(target) > 450 ? VectorManager.MaxSoldierPosition(target.Position) : target.Position,true);
@@ -152,7 +171,7 @@ namespace AzirTheEmperorOfSoloQueue
             }
             var myPos = ObjectManager.Player.Position;
             var nearest = VectorManager.GetSoldierNearPosition(target.Position).Position;
-            if (nearest.Distance(target.Position) <= 450 && E.IsReady() && (myPos.Y*nearest.X - myPos.X*nearest.Y) - (myPos.Y*target.Position.X - myPos.X*target.Position.Y) <= 0)
+            if (Config.Item("useE").GetValue<bool>() && Config.Item("useE_"+target.BaseSkinName).GetValue<bool>() && nearest.Distance(target.Position) <= 450 && E.IsReady() && (myPos.Y*nearest.X - myPos.X*nearest.Y) - (myPos.Y*target.Position.X - myPos.X*target.Position.Y) <= 0)
             {
                 // target within radius
                 E.Cast(nearest, true);
@@ -184,7 +203,7 @@ namespace AzirTheEmperorOfSoloQueue
                             1000 *
                             (int)
                                 (ObjectManager.Player.Distance(pos1) /
-                                 500) - (Game.Ping / 2), () => { Q.Cast(pos2, true); });
+                                 500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2), () => { Q.Cast(pos2, true); });
                     }
                     if (R.IsReady() && !E.IsReady() && !Q.IsReady())
                     {
@@ -210,7 +229,7 @@ namespace AzirTheEmperorOfSoloQueue
                     1000*
                     (int)
                         (ObjectManager.Player.Distance(nearest)/
-                         500) - (Game.Ping/2), () => { Q.Cast(Game.CursorPos, true); });
+                         500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2), () => { Q.Cast(Game.CursorPos, true); });
             }
         }
     }
