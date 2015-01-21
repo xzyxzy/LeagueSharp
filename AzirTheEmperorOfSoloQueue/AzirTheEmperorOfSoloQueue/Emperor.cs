@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SharpDX;
-using SharpDX.Direct3D9;
 
 namespace AzirTheEmperorOfSoloQueue
 {
@@ -35,9 +30,16 @@ namespace AzirTheEmperorOfSoloQueue
             Orb = new Orbwalking.Orbwalker(orbz);
             Config.AddSubMenu(orbz);
 
+            Config.AddItem(new MenuItem("useR", "Use R").SetValue(true));
             Config.AddItem(new MenuItem("trainMode", "Ride the train!").SetValue(new KeyBind('Z', KeyBindType.Press)));
             Config.AddItem(new MenuItem("insec", "Insec target").SetValue(new KeyBind('T', KeyBindType.Press)));
-            Config.AddItem(new MenuItem("drawInsec", "Draw Insec").SetValue(true));
+
+            var draw = new Menu("Drawings", "draw");
+            draw.AddItem(new MenuItem("drawInsec", "Draw Insec").SetValue(true));
+            draw.AddItem(new MenuItem("drawQ", "Draw Q range").SetValue(true));
+            draw.AddItem(new MenuItem("drawW", "Draw W range").SetValue(true));
+            draw.AddItem(new MenuItem("drawE", "Draw E range").SetValue(true));
+            draw.AddItem(new MenuItem("drawSoldier", "Draw Soldier range").SetValue(true));
 
             Config.AddToMainMenu();
             Q = new Spell(SpellSlot.Q, 1250);
@@ -48,6 +50,9 @@ namespace AzirTheEmperorOfSoloQueue
             Q.SetSkillshot(0.25f, 100, 500, false, SkillshotType.SkillshotLine);
             W.SetSkillshot(0f, 425, float.MaxValue, false, SkillshotType.SkillshotCircle);
             R.SetSkillshot(0.2f, 700, 1300, false, SkillshotType.SkillshotLine);
+            DrawingManager.SpellList.Add(Q);
+            DrawingManager.SpellList.Add(W);
+            DrawingManager.SpellList.Add(E);
             Game.OnGameUpdate += Game_OnGameUpdate;
             GameObject.OnCreate += VectorManager.GameObject_OnCreate;
             GameObject.OnDelete += VectorManager.GameObject_OnDelete;
@@ -61,6 +66,31 @@ namespace AzirTheEmperorOfSoloQueue
             FightMode();
             HarassMode();
             InSec();
+            var myPos = ObjectManager.Player.Position;
+            foreach (var minion in ObjectManager.Get<Obj_AI_Hero>().Where(h => h.IsEnemy && h.IsVisible && !h.IsDead).OrderBy(h => h.Health))
+            {
+                if (W.IsReady() && VectorManager.AzirObjects.Count < 1)
+                {
+                    W.Cast(ObjectManager.Player.Distance(minion) > 450
+                        ? VectorManager.MaxSoldierPosition(minion.Position)
+                        : minion.Position, true);
+                }
+                if (Q.IsReady() && ObjectManager.Player.GetSpellDamage(minion, SpellSlot.Q) > minion.Health)
+                {
+                    Q.Cast(minion, true);
+                }
+                var nearest = VectorManager.GetSoldierNearPosition(minion.Position).Position;
+                if (ObjectManager.Player.GetSpellDamage(minion, SpellSlot.E) > minion.Health && nearest.Distance(minion.Position) <= 450 && E.IsReady() && (myPos.Y * nearest.X - myPos.X * nearest.Y) - (myPos.Y * minion.Position.X - myPos.X * minion.Position.Y) <= 0)
+                {
+                    // target within radius
+                    E.Cast(nearest, true);
+                }
+                if (Config.Item("useR").GetValue<bool>() &&
+                    ObjectManager.Player.GetSpellDamage(minion, SpellSlot.R) > minion.Health)
+                {
+                    R.Cast(minion, true);
+                }
+            }
         }
 
         internal static void HarassMode()
@@ -106,7 +136,7 @@ namespace AzirTheEmperorOfSoloQueue
                     Orbwalking.ResetAutoAttackTimer();
                     ObjectManager.Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                 }
-                if (!Q.IsReady() && ObjectManager.Player.Distance(target, false) <= 450f+450f)
+                if (!Q.IsReady() && ObjectManager.Player.Distance(target) <= 450f+450f)
                     // we use double because azir soldier double our range.
                 {
                     W.Cast(ObjectManager.Player.Distance(target) > 450 ? VectorManager.MaxSoldierPosition(target.Position) : target.Position,true);
@@ -122,7 +152,7 @@ namespace AzirTheEmperorOfSoloQueue
             }
             var myPos = ObjectManager.Player.Position;
             var nearest = VectorManager.GetSoldierNearPosition(target.Position).Position;
-            if (E.IsReady() && (myPos.Y*nearest.X - myPos.X*nearest.Y) - (myPos.Y*target.Position.X - myPos.X*target.Position.Y) <= 0)
+            if (nearest.Distance(target.Position) <= 450 && E.IsReady() && (myPos.Y*nearest.X - myPos.X*nearest.Y) - (myPos.Y*target.Position.X - myPos.X*target.Position.Y) <= 0)
             {
                 // target within radius
                 E.Cast(nearest, true);

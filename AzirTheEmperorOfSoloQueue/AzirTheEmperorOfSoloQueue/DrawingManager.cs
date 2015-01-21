@@ -1,27 +1,32 @@
 ﻿using System;
-using System.Drawing.Drawing2D;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SharpDX;
-using Matrix = SharpDX.Matrix;
 
 namespace AzirTheEmperorOfSoloQueue
 {
     class DrawingManager
     {
+        public static List<Spell> SpellList = new List<Spell>(); 
         public static void Init()
         {
             Drawing.OnDraw += Drawing_OnDraw;
         }
 
-        public static double ToRadians(double val)
-        {
-            return (Math.PI / 180) * val;
-        }
-
         private static void Drawing_OnDraw(EventArgs args)
         {
+            foreach (var spell in SpellList.Where(d => Emperor.Config.Item("draw"+d.Slot).GetValue<bool>() && d.Level > 0))
+            {
+                Render.Circle.DrawCircle(ObjectManager.Player.Position, spell.Range, spell.IsReady() ? System.Drawing.Color.AntiqueWhite : System.Drawing.Color.Red);
+            }
+            if (Emperor.Config.Item("drawSoldier").GetValue<bool>())
+            {
+                foreach (var soldier in VectorManager.AzirObjects)
+                {
+                    Render.Circle.DrawCircle(soldier.Position, 450f, System.Drawing.Color.RoyalBlue);
+                }
+            }
             if (Emperor.Config.Item("drawInsec").GetValue<bool>())
             {
                 var target = TargetSelector.GetTarget(1250f, TargetSelector.DamageType.Magical);
@@ -31,7 +36,7 @@ namespace AzirTheEmperorOfSoloQueue
                     Drawing.DrawLine(Drawing.WorldToScreen(ObjectManager.Player.Position), Drawing.WorldToScreen(target.Position.Extend(Game.CursorPos, 450)), 3, System.Drawing.Color.White);
                     var extended = Drawing.WorldToScreen(target.Position.Extend(ObjectManager.Player.Position, -250));
                     Drawing.DrawLine(newPos, extended, 3, System.Drawing.Color.Cyan);
-                    Utility.DrawCircle(Drawing.ScreenToWorld(extended), 30, System.Drawing.Color.Red);
+                    Render.Circle.DrawCircle(Drawing.ScreenToWorld(extended), 30, System.Drawing.Color.Red);
                 }
             }
         }
