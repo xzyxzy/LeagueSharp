@@ -122,6 +122,14 @@ namespace AzirTheEmperorOfSoloQueue
             if (Orbwalking.OrbwalkingMode.Combo != Orb.ActiveMode) return;
             var target = TargetSelector.GetTarget(1250+450, TargetSelector.DamageType.Magical);
             if (target == null) return;
+            if (VectorManager.IsWithinSoldierRange(target))
+            {
+                if (Orbwalking.CanAttack())
+                {
+                    Orbwalking.ResetAutoAttackTimer();
+                    ObjectManager.Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                }
+            }
             if (W.IsReady())
             {
                 if (VectorManager.AzirObjects.Count < 2 && target.Distance(VectorManager.MaxSoldierPosition(target.Position),true) <= 450)
@@ -141,8 +149,6 @@ namespace AzirTheEmperorOfSoloQueue
             if (Q.IsReady())
             {
                 Q.Cast(target, true);
-                Orbwalking.ResetAutoAttackTimer();
-                ObjectManager.Player.IssueOrder(GameObjectOrder.AttackUnit, target);
             }
             var myPos = ObjectManager.Player.Position;
             var nearest = VectorManager.GetSoldierNearPosition(target.Position).Position;

@@ -44,7 +44,7 @@ namespace AzirTheEmperorOfSoloQueue
 
         internal static bool IsWithinSoldierRange(Obj_AI_Base unit)
         {
-            return AzirObjects.Any(soldier => unit.Distance(soldier.Position) <= 450f);
+            return AzirObjects.Any(soldier => unit.Distance(soldier.Position) <= 345f);
         }
 
         internal static bool IsInFront(Vector3 unit, Vector3 direction)
