@@ -69,12 +69,6 @@ namespace AzirTheEmperorOfSoloQueue
             var myPos = ObjectManager.Player.Position;
             foreach (var minion in ObjectManager.Get<Obj_AI_Hero>().Where(h => h.IsEnemy && h.IsVisible && !h.IsDead).OrderBy(h => h.Health))
             {
-                if (W.IsReady() && VectorManager.AzirObjects.Count < 1)
-                {
-                    W.Cast(ObjectManager.Player.Distance(minion) > 450
-                        ? VectorManager.MaxSoldierPosition(minion.Position)
-                        : minion.Position, true);
-                }
                 if (Q.IsReady() && ObjectManager.Player.GetSpellDamage(minion, SpellSlot.Q) > minion.Health)
                 {
                     Q.Cast(minion, true);

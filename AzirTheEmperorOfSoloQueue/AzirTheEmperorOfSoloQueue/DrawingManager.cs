@@ -24,7 +24,7 @@ namespace AzirTheEmperorOfSoloQueue
             {
                 foreach (var soldier in VectorManager.AzirObjects)
                 {
-                    Render.Circle.DrawCircle(soldier.Position, 450f, System.Drawing.Color.RoyalBlue);
+                    Render.Circle.DrawCircle(soldier.Position, 345f, System.Drawing.Color.RoyalBlue);
                 }
             }
             if (Emperor.Config.Item("drawInsec").GetValue<bool>())
