@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
 using LeagueSharp.Common;
+using SharpDX;
 
 namespace AzirTheEmperorOfSoloQueue
 {
@@ -215,26 +216,42 @@ namespace AzirTheEmperorOfSoloQueue
             }
         }
 
+        private static Vector3 _lastSoldierCastPosition = new Vector3();
+        public static int LastCastDelay = 0;
+        internal static void SaveLastSoldierCastPosition(Vector3 pos)
+        {
+            _lastSoldierCastPosition = pos;
+        }
+
+        private static void SaveLastCastDelay()
+        {
+            var spell = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E);
+            var delay = 10 *
+                        (int)
+                            (ObjectManager.Player.ServerPosition.Distance(_lastSoldierCastPosition) /
+                             spell.SData.MissileSpeed) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2);
+            LastCastDelay = delay;
+        }
+
         internal static void EscapeMode()
         {
             if (!Config.Item("trainMode").GetValue<KeyBind>().Active || E.Level < 1 || Q.Level < 1) return;
             if (W.IsReady() && VectorManager.AzirObjects.Count < 1)
-                W.Cast(VectorManager.MaxSoldierPosition(Game.CursorPos), true);
-            var nearest = VectorManager.GetSoldierNearPosition(Game.CursorPos).Position;
+            {
+                var whereToCast = Game.CursorPos;
+                SaveLastSoldierCastPosition(whereToCast);
+                W.Cast(VectorManager.MaxSoldierPosition(whereToCast), true);
+            }
+//            Game.PrintChat("Last Position: "+_lastSoldierCastPosition+" Delay: " + LastCastDelay);
+
             if (E.IsReady())
             {
-                E.Cast(nearest, true);
-                // wtf did i just write there
-                if (QTrain.IsReady() && ObjectManager.Player.Distance(Game.CursorPos) > 250f)
-                {
-                    Utility.DelayAction.Add(
-                        1000*
-                        (int)
-                            (ObjectManager.Player.Distance(nearest)/
-                             500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping/2),
-                        () => { QTrain.Cast(Game.CursorPos, true); });
-                }
-
+                E.Cast(_lastSoldierCastPosition, true);
+                SaveLastCastDelay();
+            }
+            if (QTrain.IsReady())
+            {
+                Utility.DelayAction.Add(LastCastDelay, () => { QTrain.Cast(Game.CursorPos, true); });
             }
         }
     }

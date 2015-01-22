@@ -16,6 +16,7 @@ namespace AzirTheEmperorOfSoloQueue
 
         private static void Drawing_OnDraw(EventArgs args)
         {
+//            Drawing.DrawLine(Drawing.WorldToScreen(ObjectManager.Player.Position), Drawing.WorldToScreen(ObjectManager.Player.Position.Extend(Game.CursorPos,450)), 5, System.Drawing.Color.White);
             foreach (var spell in SpellList.Where(d => Emperor.Config.Item("draw"+d.Slot).GetValue<bool>() && d.Level > 0))
             {
                 Render.Circle.DrawCircle(ObjectManager.Player.Position, spell.Range, spell.IsReady() ? System.Drawing.Color.AntiqueWhite : System.Drawing.Color.Red);

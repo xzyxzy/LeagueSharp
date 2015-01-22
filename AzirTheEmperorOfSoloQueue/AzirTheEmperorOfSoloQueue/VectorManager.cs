@@ -39,7 +39,7 @@ namespace AzirTheEmperorOfSoloQueue
 
         internal static Vector3 MaxSoldierPosition(Vector3 position)
         {
-            return ObjectManager.Player.Position.Extend(position, 450f);
+            return ObjectManager.Player.Position.Extend(position, 450);
         }
 
         internal static bool IsWithinSoldierRange(Obj_AI_Base unit)
