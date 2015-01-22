@@ -214,6 +214,7 @@ namespace AzirTheEmperorOfSoloQueue
                 }
             }
         }
+
         internal static void EscapeMode()
         {
             if (!Config.Item("trainMode").GetValue<KeyBind>().Active || E.Level < 1 || Q.Level < 1) return;
@@ -223,15 +224,17 @@ namespace AzirTheEmperorOfSoloQueue
             if (E.IsReady())
             {
                 E.Cast(nearest, true);
-            }
-            // wtf did i just write there
-            if (QTrain.IsReady() && ObjectManager.Player.Distance(Game.CursorPos) > 450f)
-            {
-                Utility.DelayAction.Add(
-                    1000*
-                    (int)
-                        (ObjectManager.Player.Distance(nearest)/
-                         500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2), () => { QTrain.Cast(Game.CursorPos, true); });
+                // wtf did i just write there
+                if (QTrain.IsReady() && ObjectManager.Player.Distance(Game.CursorPos) > 250f)
+                {
+                    Utility.DelayAction.Add(
+                        1000*
+                        (int)
+                            (ObjectManager.Player.Distance(nearest)/
+                             500) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping/2),
+                        () => { QTrain.Cast(Game.CursorPos, true); });
+                }
+
             }
         }
     }
