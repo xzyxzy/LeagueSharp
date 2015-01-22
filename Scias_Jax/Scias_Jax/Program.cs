@@ -2,7 +2,7 @@
 using LeagueSharp;
 using LeagueSharp.Common;
 
-namespace TAC_Jax
+namespace Scias_Jax
 {
     class Jax
     {

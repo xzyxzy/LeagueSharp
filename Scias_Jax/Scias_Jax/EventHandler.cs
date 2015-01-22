@@ -9,7 +9,7 @@ using SharpDX;
 //EmpoweredTwo --When Jax presses W
 //MasterySpellWeaving -- When Jax is using W on target
 //ItemPhageSpeed
-namespace TAC_Jax
+namespace Scias_Jax
 {
     class EventHandler
     {

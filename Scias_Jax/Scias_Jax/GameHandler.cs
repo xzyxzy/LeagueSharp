@@ -4,7 +4,7 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using SharpDX;
 
-namespace TAC_Jax
+namespace Scias_Jax
 {
     class GameHandler
     {

@@ -4,7 +4,7 @@ using LeagueSharp;
 using LeagueSharp.Common;
 using Color = System.Drawing.Color;
 
-namespace TAC_Jax
+namespace Scias_Jax
 {
     class DrawingHandler
     {
