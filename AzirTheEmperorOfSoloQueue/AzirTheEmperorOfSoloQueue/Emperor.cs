@@ -15,6 +15,9 @@ namespace AzirTheEmperorOfSoloQueue
         internal static Obj_AI_Hero Player;
         internal static List<Spell> Spells = new List<Spell>();
         internal static Orbwalking.Orbwalker Orb;
+        private static Vector3 _lastSoldierCastPosition = new Vector3();
+        public static int LastCastDelay = 0;
+
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
@@ -99,6 +102,20 @@ namespace AzirTheEmperorOfSoloQueue
                     R.Cast(minion, true);
                 }
             }
+        }
+        internal static void SaveLastSoldierCastPosition(Vector3 pos)
+        {
+            _lastSoldierCastPosition = pos;
+        }
+
+        private static void SaveLastCastDelay()
+        {
+            var spell = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E);
+            var delay = 10 *
+                        (int)
+                            (ObjectManager.Player.ServerPosition.Distance(_lastSoldierCastPosition) /
+                             spell.SData.MissileSpeed) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2);
+            LastCastDelay = delay;
         }
 
         internal static void HarassMode()
@@ -195,9 +212,14 @@ namespace AzirTheEmperorOfSoloQueue
 
                 if ((myPos.Y*pos1.X - myPos.X*pos1.Y) - (myPos.Y*pos2.X - myPos.X*pos2.Y) > 0)
                 {
-                    if (W.IsReady()) W.Cast(VectorManager.MaxSoldierPosition(pos1), true);
+                    if (W.IsReady())
+                    {
+                        SaveLastSoldierCastPosition(pos1);
+                        W.Cast(VectorManager.MaxSoldierPosition(pos1), true);
+                    }
                     if (E.IsReady())
                     {
+                        SaveLastCastDelay();
                         E.Cast(pos1, true);
                     }
                     if (QTrain.IsReady())
@@ -216,23 +238,6 @@ namespace AzirTheEmperorOfSoloQueue
             }
         }
 
-        private static Vector3 _lastSoldierCastPosition = new Vector3();
-        public static int LastCastDelay = 0;
-        internal static void SaveLastSoldierCastPosition(Vector3 pos)
-        {
-            _lastSoldierCastPosition = pos;
-        }
-
-        private static void SaveLastCastDelay()
-        {
-            var spell = ObjectManager.Player.Spellbook.GetSpell(SpellSlot.E);
-            var delay = 10 *
-                        (int)
-                            (ObjectManager.Player.ServerPosition.Distance(_lastSoldierCastPosition) /
-                             spell.SData.MissileSpeed) - Config.Item("trainDelay").GetValue<Slider>().Value - (Game.Ping / 2);
-            LastCastDelay = delay;
-        }
-
         internal static void EscapeMode()
         {
             if (!Config.Item("trainMode").GetValue<KeyBind>().Active || E.Level < 1 || Q.Level < 1) return;
@@ -242,12 +247,10 @@ namespace AzirTheEmperorOfSoloQueue
                 SaveLastSoldierCastPosition(whereToCast);
                 W.Cast(VectorManager.MaxSoldierPosition(whereToCast), true);
             }
-//            Game.PrintChat("Last Position: "+_lastSoldierCastPosition+" Delay: " + LastCastDelay);
-
             if (E.IsReady())
             {
-                E.Cast(_lastSoldierCastPosition, true);
                 SaveLastCastDelay();
+                E.Cast(_lastSoldierCastPosition, true);
             }
             if (QTrain.IsReady())
             {
