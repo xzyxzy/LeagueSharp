@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LeagueSharp;
@@ -18,6 +18,22 @@ namespace AzirTheEmperorOfSoloQueue
         private static Vector3 _lastSoldierCastPosition = new Vector3();
         public static int LastCastDelay = 0;
 
+		//Key binds
+        public static MenuItem comboKey;
+        public static MenuItem harassKey;
+        public static MenuItem laneclearKey;
+        public static MenuItem lanefreezeKey;
+        
+        //Items
+        public static Items.Item DFG;
+
+        //Orbwalker instance
+        private static Orbwalking.Orbwalker _orbwalker;
+
+        private static Menu Menu;
+        private static Menu orbwalkerMenu;
+
+
         static void Main(string[] args)
         {
             CustomEvents.Game.OnGameLoad += Game_OnGameLoad;
@@ -26,13 +42,15 @@ namespace AzirTheEmperorOfSoloQueue
         internal static void Game_OnGameLoad(EventArgs args)
         {
             Config = new Menu("Azir - SoloQ God","azir",true);
-            var ts = new Menu("Target Selector", "ts");
-            TargetSelector.AddToMenu(ts);
-            Config.AddSubMenu(ts);
+            orbwalkerMenu = new Menu("Orbwalker", "Orbwalker");
+            //TargetSelector
+            Menu.AddSubMenu(new Menu("TargetSelector", "TargetSelector"));
+            TargetSelector.AddToMenu(Menu.SubMenu("TargetSelector"));
 
-            var orbz = new Menu("Orbwalker","orb");
-            Orb = new Orbwalking.Orbwalker(orbz);
-            Config.AddSubMenu(orbz);
+            //Orbwalker
+            orbwalkerMenu.AddItem(new MenuItem("Orbwalker_Mode", "Regular Orbwalker").SetValue(false));
+            Menu.AddSubMenu(orbwalkerMenu);
+            ChooseOrbwalker(Menu.Item("Orbwalker_Mode").GetValue<bool>());
 
             var sel = new Menu("Configuration", "Config");
             var useE = new Menu("Use E", "useeE");
@@ -75,7 +93,27 @@ namespace AzirTheEmperorOfSoloQueue
             GameObject.OnDelete += VectorManager.GameObject_OnDelete;
             DrawingManager.Init();
         }
-        
+                private static void ChooseOrbwalker(bool mode)
+        {
+            if (mode)
+            {
+                _orbwalker = new Orbwalking.Orbwalker(orbwalkerMenu);
+                comboKey = Menu.Item("Orbwalk");
+                harassKey = Menu.Item("Farm");
+                laneclearKey = Menu.Item("LaneClear");
+                lanefreezeKey = Menu.Item("LaneClear");
+                Game.PrintChat("Regular Orbwalker Loaded");
+            }
+            else
+            {
+                xSLxOrbwalker.AddToMenu(orbwalkerMenu);
+                comboKey = Menu.Item("Combo_Key");
+                harassKey = Menu.Item("Harass_Key");
+                laneclearKey = Menu.Item("LaneClear_Key");
+                lanefreezeKey = Menu.Item("LaneFreeze_Key");
+                Game.PrintChat("xSLx Orbwalker Loaded");
+            }
+        }
         internal static void Game_OnGameUpdate(EventArgs args)
         {
 //            if (Player.InFountain() || Player.IsRecalling()) return;
